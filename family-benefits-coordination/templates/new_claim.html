@@ -1,0 +1,71 @@
+<!-- templates/new_claim.html -->
+{% extends "base.html" %}
+
+{% block title %}New Claim - Family Insurance Claims{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">Create New Claim</h1>
+        <p style="color: #64748b;">Enter the details of your healthcare expense.</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+        <div class="grid grid-2">
+            <div class="form-group">
+                <label for="person_served" class="form-label">Person Served</label>
+                <input type="text" id="person_served" name="person_served" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label for="date_of_service" class="form-label">Date of Service</label>
+                <input type="date" id="date_of_service" name="date_of_service" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <div class=" form-group">
+                    <label for="service_provider" class="form-label">Service Provider</label>
+                    <input type="text" id="service_provider" name="service_provider" class="form-input"
+                        placeholder="e.g., Dr. Smith, Main Street Dental" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="service_type" class="form-label">Service Type</label>
+                    <select id="service_type" name="service_type" class="form-select" required>
+                        <option value="">Select service type</option>
+                        <option value="Medical">Medical</option>
+                        <option value="Dental">Dental</option>
+                        <option value="Vision">Vision</option>
+                        <option value="Physiotherapy">Physiotherapy</option>
+                        <option value="Chiropractic">Chiropractic</option>
+                        <option value="Mental Health">Mental Health</option>
+                        <option value="Prescription">Prescription</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="amount_paid" class="form-label">Amount Paid</label>
+                    <input type="number" id="amount_paid" name="amount_paid" class="form-input" step="0.01" min="0"
+                        placeholder="0.00" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="receipt" class="form-label">Receipt (Optional)</label>
+                    <input type="file" id="receipt" name="receipt" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="notes" class="form-label">Notes (Optional)</label>
+                <textarea id="notes" name="notes" class="form-textarea"
+                    placeholder="Any additional information about this claim..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline">Cancel</a>
+                <button type="submit" class="btn btn-primary">Create Claim</button>
+            </div>
+    </form>
+</div>
+{% endblock %}

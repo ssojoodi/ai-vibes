@@ -1,0 +1,48 @@
+<!-- templates/index.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="grid grid-2" style="align-items: center; min-height: 60vh;">
+    <div>
+        <h1 style="font-size: 3rem; font-weight: 700; margin-bottom: 1rem; color: #1e293b;">
+            Insurance Claims Made Simple
+        </h1>
+        <p style="font-size: 1.25rem; color: #64748b; margin-bottom: 2rem;">
+            Track your family's insurance claims through the complete workflow - from payment to final reimbursement.
+        </p>
+        <div style="display: flex; gap: 1rem;">
+            <a href="{{ url_for('register') }}" class="btn btn-primary">Get Started</a>
+            <a href="{{ url_for('login') }}" class="btn btn-outline">Sign In</a>
+        </div>
+    </div>
+    <div class="card">
+        <h3 style="margin-bottom: 1rem; color: #3b82f6;">How it works</h3>
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <div
+                    style="background: #3b82f6; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;">
+                    1</div>
+                <span>Pay your healthcare provider and create a claim</span>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <div
+                    style="background: #3b82f6; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;">
+                    2</div>
+                <span>Submit to your primary insurance</span>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <div
+                    style="background: #3b82f6; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;">
+                    3</div>
+                <span>Get COB and submit to secondary insurance</span>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <div
+                    style="background: #10b981; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;">
+                    ✓</div>
+                <span>Track everything until full reimbursement</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
