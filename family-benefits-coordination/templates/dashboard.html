@@ -1,0 +1,77 @@
+<!-- templates/dashboard.html -->
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Family Insurance Claims{% endblock %}
+
+{% block content %}
+<div class="card-header">
+    <h1 class="card-title">Claims Dashboard</h1>
+    <p style="color: #64748b; margin-top: 0.5rem;">Welcome back! Here's your current claims status.</p>
+</div>
+
+<div class="stats">
+    <div class="stat-card">
+        <div class="stat-value">{{ total_claims }}</div>
+        <div class="stat-label">Active Claims</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">${{ "%.2f"|format(total_outstanding) }}</div>
+        <div class="stat-label">Outstanding Amount</div>
+    </div>
+</div>
+
+<div class="grid grid-2">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Recent Claims</h2>
+        </div>
+        {% if claims %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Person</th>
+                    <th>Service</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for claim in claims[:5] %}
+                <tr>
+                    <td><strong>{{ claim.person_served }}</strong></td>
+                    <td>{{ claim.service_type }}</td>
+                    <td>${{ "%.2f"|format(claim.amount_paid) }}</td>
+                    <td><span class="status-badge status-{{ claim.status }}">{{ claim.status_display }}</span></td>
+                    <td><a href="{{ url_for('claim_detail', id=claim.id) }}" class="btn btn-outline"
+                            style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">View</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div style="margin-top: 1rem; text-align: center;">
+            <a href="{{ url_for('all_claims') }}" class="btn btn-outline">View All Claims</a>
+        </div>
+        {% else %}
+        <p style="text-align: center; color: #64748b; padding: 2rem;">
+            No active claims. <a href="{{ url_for('new_claim') }}" class="btn btn-primary"
+                style="margin-left: 1rem;">Create your first claim</a>
+        </p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Quick Actions</h2>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <a href="{{ url_for('new_claim') }}" class="btn btn-primary">
+                <span>+</span> Create New Claim
+            </a>
+            <a href="{{ url_for('all_claims') }}" class="btn btn-outline">
+                View All Claims
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

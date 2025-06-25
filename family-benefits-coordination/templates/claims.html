@@ -1,0 +1,64 @@
+<!-- templates/claims.html -->
+{% extends "base.html" %}
+
+{% block title %}All Claims - Family Insurance Claims{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1 class="card-title">All Claims</h1>
+                <p style="color: #64748b;">Complete history of your family's insurance claims</p>
+            </div>
+            <a href="{{ url_for('new_claim') }}" class="btn btn-primary">+ New Claim</a>
+        </div>
+    </div>
+
+    {% if claims %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Person</th>
+                <th>Service</th>
+                <th>Provider</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Reimbursed</th>
+                <th>Outstanding</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for claim in claims %}
+            <tr>
+                <td><strong>#{{ claim.id }}</strong></td>
+                <td>{{ claim.person_served }}</td>
+                <td>{{ claim.service_type }}</td>
+                <td>{{ claim.service_provider }}</td>
+                <td>{{ claim.date_of_service.strftime('%b %d, %Y') }}</td>
+                <td>${{ "%.2f"|format(claim.amount_paid) }}</td>
+                <td>${{ "%.2f"|format(claim.total_reimbursed) }}</td>
+                <td style="color: {% if claim.outstanding_amount > 0 %}#dc2626{% else %}#16a34a{% endif %};">
+                    ${{ "%.2f"|format(claim.outstanding_amount) }}
+                </td>
+                <td><span class="status-badge status-{{ claim.status }}">{{ claim.status_display }}</span></td>
+                <td>
+                    <a href="{{ url_for('claim_detail', id=claim.id) }}" class="btn btn-outline"
+                        style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 4rem; color: #64748b;">
+        <h3>No claims yet</h3>
+        <p>Create your first claim to get started tracking your insurance reimbursements.</p>
+        <a href="{{ url_for('new_claim') }}" class="btn btn-primary" style="margin-top: 1rem;">Create First Claim</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
