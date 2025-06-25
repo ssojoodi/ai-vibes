@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  lunch-auction:
+    build: .
+    container_name: lunch-auction-app
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+    volumes:
+      # Mount database directory for persistence
+      - ./data:/app/data
+      # Mount source code for development (optional - comment out for production)
+      - .:/app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# Optional: Add a volume for persistent data
+volumes:
+  lunch_auction_data: 
