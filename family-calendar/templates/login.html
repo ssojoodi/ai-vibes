@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <i class="fas fa-calendar-alt"></i>
+            <h1>Family Calendar</h1>
+            <p>Organize your family's schedule with AI-powered event parsing</p>
+        </div>
+
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+
+        <div class="auth-divider">
+            <span>Don't have an account? <a href="#" id="show-register">Create Account</a></span>
+        </div>
+
+        <form method="POST" action="{{ url_for('register') }}" class="auth-form" id="register-form"
+            style="display: none;">
+            <div class="form-group">
+                <label for="reg-username">Username</label>
+                <input type="text" id="reg-username" name="username" required>
+            </div>
+
+            <div class="form-group">
+                <label for="reg-password">Password</label>
+                <input type="password" id="reg-password" name="password" required>
+            </div>
+
+
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('show-register').addEventListener('click', function (e) {
+        e.preventDefault();
+        const form = document.getElementById('register-form');
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        this.textContent = form.style.display === 'none' ? 'Create Account' : 'Hide Registration';
+    });
+</script>
+{% endblock %}

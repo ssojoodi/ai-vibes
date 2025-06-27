@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="calendar-container">
+    <div class="calendar-header">
+        <h1>Family Calendar</h1>
+        <div class="family-legend">
+            {% for member in family_members %}
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: {{ member.color }}"></div>
+                <span>{{ member.name }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div id="calendar"></div>
+
+    <!-- Event Details Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle"></h2>
+            <div id="modalContent"></div>
+            <div class="modal-actions">
+                <button id="deleteEventBtn" class="btn btn-danger">Delete Event</button>
+                <button id="deleteSeriesBtn" class="btn btn-danger" style="display: none;">Delete Series</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const calendarEl = document.getElementById('calendar');
+        const events = {{ events | tojson | safe
+    }};
+
+
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        events: events,
+        eventClick: function (info) {
+            showEventModal(info.event);
+        },
+        height: 'auto'
+    });
+
+    calendar.render();
+
+    function showEventModal(event) {
+        const modal = document.getElementById('eventModal');
+        const title = document.getElementById('modalTitle');
+        const content = document.getElementById('modalContent');
+        const deleteBtn = document.getElementById('deleteEventBtn');
+        const deleteSeriesBtn = document.getElementById('deleteSeriesBtn');
+
+        title.textContent = event.title;
+
+        const startTime = event.start.toLocaleString();
+        const endTime = event.end ? event.end.toLocaleString() : 'No end time';
+
+        content.innerHTML = `
+                <p><strong>Person:</strong> ${event.extendedProps.person}</p>
+                <p><strong>Start:</strong> ${startTime}</p>
+                <p><strong>End:</strong> ${endTime}</p>
+                ${event.extendedProps.description ? `<p><strong>Description:</strong> ${event.extendedProps.description}</p>` : ''}
+            `;
+
+        deleteBtn.onclick = () => deleteEvent(event.id);
+
+        if (event.extendedProps.seriesId) {
+            deleteSeriesBtn.style.display = 'inline-block';
+            deleteSeriesBtn.onclick = () => deleteSeries(event.extendedProps.seriesId);
+        } else {
+            deleteSeriesBtn.style.display = 'none';
+        }
+
+        modal.style.display = 'block';
+    }
+
+    function deleteEvent(eventId) {
+        if (confirm('Are you sure you want to delete this event?')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/delete_event/${eventId}`;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+
+    function deleteSeries(seriesId) {
+        if (confirm('Are you sure you want to delete this entire event series?')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/delete_series/${seriesId}`;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+
+    // Close modal functionality
+    const modal = document.getElementById('eventModal');
+    const closeBtn = document.getElementsByClassName('close')[0];
+
+    closeBtn.onclick = () => modal.style.display = 'none';
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    };
+    });
+</script>
+{% endblock %}
