@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smith Maneuver Calculator | Financial Strategy Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #c62d42 0%, #a02037 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(198, 45, 66, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-style: italic;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .card h2 {
+            color: #c62d42;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 400;
+            border-bottom: 2px solid #c62d42;
+            padding-bottom: 0.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #34495e;
+            font-size: 0.95rem;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        input[type="number"],
+        input[type="range"],
+        select {
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            padding: 0.75rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input[type="number"] {
+            flex: 1;
+        }
+
+        input[type="range"] {
+            flex: 2;
+            height: 6px;
+            background: #e9ecef;
+            outline: none;
+            border: none;
+            border-radius: 3px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #c62d42;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(198, 45, 66, 0.3);
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            border-color: #c62d42;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(198, 45, 66, 0.1);
+        }
+
+        select {
+            flex: 1;
+            background: white;
+            cursor: pointer;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .metric {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .metric:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #c62d42;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 2rem 0;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-table th {
+            background: #c62d42;
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .comparison-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .comparison-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #c62d42, #a02037);
+            color: white;
+        }
+
+        .scenario-controls {
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+
+        .scenario-controls h3 {
+            margin-bottom: 1rem;
+            font-weight: 400;
+        }
+
+        .tooltip {
+            position: relative;
+            cursor: help;
+            border-bottom: 1px dotted #c62d42;
+        }
+
+        .tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2c3e50;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            z-index: 1000;
+        }
+
+        .economist-accent {
+            color: #c62d42;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Smith Maneuver Calculator</h1>
+        <p>Strategic mortgage interest conversion for Canadian homeowners</p>
+    </div>
+
+    <div class="container">
+        <div class="grid">
+            <div class="card">
+                <h2>Investment Parameters</h2>
+
+                <div class="input-group">
+                    <label for="homeValue">Home Value ($)</label>
+                    <div class="input-row">
+                        <input type="number" id="homeValue" value="600000" min="200000" max="2000000" step="10000">
+                        <input type="range" id="homeValueSlider" min="200000" max="2000000" step="10000" value="600000">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="mortgageBalance">Current Mortgage Balance ($)</label>
+                    <div class="input-row">
+                        <input type="number" id="mortgageBalance" value="400000" min="100000" max="1500000"
+                            step="10000">
+                        <input type="range" id="mortgageBalanceSlider" min="100000" max="1500000" step="10000"
+                            value="400000">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="mortgageRate">Mortgage Rate (%)</label>
+                    <div class="input-row">
+                        <input type="number" id="mortgageRate" value="4.5" min="2" max="8" step="0.1">
+                        <input type="range" id="mortgageRateSlider" min="2" max="8" step="0.1" value="4.5">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="amortization">Amortization Period (years)</label>
+                    <div class="input-row">
+                        <select id="amortization">
+                            <option value="15">15 years</option>
+                            <option value="20">20 years</option>
+                            <option value="25" selected>25 years</option>
+                            <option value="30">30 years</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="helocRate">HELOC Rate (%)</label>
+                    <div class="input-row">
+                        <input type="number" id="helocRate" value="6.0" min="3" max="10" step="0.1">
+                        <input type="range" id="helocRateSlider" min="3" max="10" step="0.1" value="6.0">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="investmentReturn">Expected Investment Return (%)</label>
+                    <div class="input-row">
+                        <input type="number" id="investmentReturn" value="7.5" min="3" max="12" step="0.1">
+                        <input type="range" id="investmentReturnSlider" min="3" max="12" step="0.1" value="7.5">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="province">Province/Territory</label>
+                    <div class="input-row">
+                        <select id="province">
+                            <option value="35">Alberta (35%)</option>
+                            <option value="43.5" selected>British Columbia (43.5%)</option>
+                            <option value="40">Manitoba (40%)</option>
+                            <option value="47">New Brunswick (47%)</option>
+                            <option value="51">Newfoundland (51%)</option>
+                            <option value="45">Northwest Territories (45%)</option>
+                            <option value="47">Nova Scotia (47%)</option>
+                            <option value="48">Nunavut (48%)</option>
+                            <option value="46.5">Ontario (46.5%)</option>
+                            <option value="47">Prince Edward Island (47%)</option>
+                            <option value="53">Quebec (53%)</option>
+                            <option value="44">Saskatchewan (44%)</option>
+                            <option value="47">Yukon (47%)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="timeHorizon">Investment Time Horizon (years)</label>
+                    <div class="input-row">
+                        <input type="number" id="timeHorizon" value="20" min="5" max="35" step="1">
+                        <input type="range" id="timeHorizonSlider" min="5" max="35" step="1" value="20">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="card">
+                    <h2>Financial Impact Analysis</h2>
+
+                    <div class="results-grid">
+                        <div class="metric">
+                            <div class="metric-value" id="totalTaxSavings">$0</div>
+                            <div class="metric-label">Total Tax Savings</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="investmentPortfolio">$0</div>
+                            <div class="metric-label">Investment Portfolio</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="netWorthIncrease">$0</div>
+                            <div class="metric-label">Net Worth Increase</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="effectiveRate">0%</div>
+                            <div class="metric-label">Effective HELOC Rate</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="portfolioChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Scenario Comparison</h2>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Scenario</th>
+                                <th>Final Portfolio</th>
+                                <th>Tax Savings</th>
+                                <th>Net Position</th>
+                                <th>ROI</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scenarioTable">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="scenario-controls">
+                    <h3>Interactive Scenario Analysis</h3>
+                    <p>Adjust the sliders above to see real-time impact on your Smith Maneuver strategy. The charts and
+                        tables will update automatically to show how changes in rates and time horizons affect your
+                        financial outcomes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables for charts
+        let portfolioChart;
+
+        // Tax rate lookup based on province selection
+        const taxRates = {
+            35: 0.35,   // Alberta
+            43.5: 0.435, // BC
+            40: 0.40,   // Manitoba
+            47: 0.47,   // New Brunswick
+            51: 0.51,   // Newfoundland
+            45: 0.45,   // Northwest Territories
+            47: 0.47,   // Nova Scotia
+            48: 0.48,   // Nunavut
+            46.5: 0.465, // Ontario
+            47: 0.47,   // PEI
+            53: 0.53,   // Quebec
+            44: 0.44,   // Saskatchewan
+            47: 0.47    // Yukon
+        };
+
+        // Sync sliders with inputs
+        function syncInputs() {
+            const inputs = [
+                'homeValue', 'mortgageBalance', 'mortgageRate',
+                'helocRate', 'investmentReturn', 'timeHorizon'
+            ];
+
+            inputs.forEach(id => {
+                const input = document.getElementById(id);
+                const slider = document.getElementById(id + 'Slider');
+
+                input.addEventListener('input', () => {
+                    slider.value = input.value;
+                    calculateSmithManeuver();
+                });
+
+                slider.addEventListener('input', () => {
+                    input.value = slider.value;
+                    calculateSmithManeuver();
+                });
+            });
+
+            // Add listeners for select elements
+            document.getElementById('amortization').addEventListener('change', calculateSmithManeuver);
+            document.getElementById('province').addEventListener('change', calculateSmithManeuver);
+        }
+
+        function calculateSmithManeuver() {
+            // Get input values
+            const homeValue = parseFloat(document.getElementById('homeValue').value);
+            const mortgageBalance = parseFloat(document.getElementById('mortgageBalance').value);
+            const mortgageRate = parseFloat(document.getElementById('mortgageRate').value) / 100;
+            const amortization = parseInt(document.getElementById('amortization').value);
+            const helocRate = parseFloat(document.getElementById('helocRate').value) / 100;
+            const investmentReturn = parseFloat(document.getElementById('investmentReturn').value) / 100;
+            const marginalTaxRate = taxRates[document.getElementById('province').value];
+            const timeHorizon = parseInt(document.getElementById('timeHorizon').value);
+
+            // Calculate available HELOC credit (80% LTV - mortgage balance)
+            const maxLTV = homeValue * 0.80;
+            const availableCredit = Math.max(0, maxLTV - mortgageBalance);
+
+            // Calculate monthly mortgage payment
+            const monthlyRate = mortgageRate / 12;
+            const numPayments = amortization * 12;
+            const monthlyPayment = mortgageBalance * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) /
+                (Math.pow(1 + monthlyRate, numPayments) - 1);
+
+            // Calculate principal portion of first payment
+            const interestPortion = mortgageBalance * monthlyRate;
+            const principalPortion = monthlyPayment - interestPortion;
+
+            // Simulate Smith Maneuver over time
+            let results = [];
+            let currentMortgageBalance = mortgageBalance;
+            let investmentBalance = 0;
+            let totalTaxSavings = 0;
+            let helocBalance = 0;
+
+            for (let year = 1; year <= timeHorizon; year++) {
+                // Calculate annual principal repayment (simplified)
+                const annualPrincipalPayment = principalPortion * 12 * Math.pow(1.02, year - 1); // Slight increase each year
+
+                // Amount available to invest from HELOC
+                const investmentAmount = Math.min(annualPrincipalPayment, availableCredit - helocBalance);
+
+                if (investmentAmount > 0) {
+                    helocBalance += investmentAmount;
+
+                    // Compound existing investments and add new investment
+                    investmentBalance = investmentBalance * (1 + investmentReturn) + investmentAmount;
+
+                    // Calculate annual tax savings
+                    const annualInterestDeduction = helocBalance * helocRate;
+                    const annualTaxSavings = annualInterestDeduction * marginalTaxRate;
+                    totalTaxSavings += annualTaxSavings;
+                }
+
+                currentMortgageBalance = Math.max(0, currentMortgageBalance - annualPrincipalPayment);
+
+                results.push({
+                    year: year,
+                    mortgageBalance: currentMortgageBalance,
+                    investmentBalance: investmentBalance,
+                    helocBalance: helocBalance,
+                    taxSavings: totalTaxSavings
+                });
+            }
+
+            // Calculate final metrics
+            const finalInvestmentBalance = investmentBalance;
+            const finalHELOCBalance = helocBalance;
+            const netPosition = finalInvestmentBalance - finalHELOCBalance;
+            const effectiveHELOCRate = helocRate * (1 - marginalTaxRate);
+
+            // Update display
+            document.getElementById('totalTaxSavings').textContent = '$' + totalTaxSavings.toLocaleString(undefined, { maximumFractionDigits: 0 });
+            document.getElementById('investmentPortfolio').textContent = '$' + finalInvestmentBalance.toLocaleString(undefined, { maximumFractionDigits: 0 });
+            document.getElementById('netWorthIncrease').textContent = '$' + netPosition.toLocaleString(undefined, { maximumFractionDigits: 0 });
+            document.getElementById('effectiveRate').textContent = (effectiveHELOCRate * 100).toFixed(1) + '%';
+
+            // Update charts
+            updatePortfolioChart(results);
+            updateScenarioTable();
+        }
+
+        function updatePortfolioChart(data) {
+            const ctx = document.getElementById('portfolioChart').getContext('2d');
+
+            if (portfolioChart) {
+                portfolioChart.destroy();
+            }
+
+            portfolioChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => 'Year ' + d.year),
+                    datasets: [{
+                        label: 'Investment Portfolio',
+                        data: data.map(d => d.investmentBalance),
+                        borderColor: '#c62d42',
+                        backgroundColor: 'rgba(198, 45, 66, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'HELOC Balance',
+                        data: data.map(d => d.helocBalance),
+                        borderColor: '#34495e',
+                        backgroundColor: 'rgba(52, 73, 94, 0.1)',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.4
+                    }, {
+                        label: 'Tax Savings',
+                        data: data.map(d => d.taxSavings),
+                        borderColor: '#27ae60',
+                        backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Smith Maneuver Portfolio Growth Over Time',
+                            font: {
+                                size: 16,
+                                family: 'Georgia'
+                            }
+                        },
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: 'Georgia'
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (value) {
+                                    return '$' + value.toLocaleString();
+                                },
+                                font: {
+                                    family: 'Georgia'
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    family: 'Georgia'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateScenarioTable() {
+            const scenarios = [
+                { name: 'Conservative (5% return)', returnRate: 0.05 },
+                { name: 'Moderate (7.5% return)', returnRate: 0.075 },
+                { name: 'Aggressive (10% return)', returnRate: 0.10 },
+                { name: 'Market Crash (-20% year 1)', returnRate: 0.06, crash: true }
+            ];
+
+            const tableBody = document.getElementById('scenarioTable');
+            tableBody.innerHTML = '';
+
+            const baseInputs = {
+                homeValue: parseFloat(document.getElementById('homeValue').value),
+                mortgageBalance: parseFloat(document.getElementById('mortgageBalance').value),
+                helocRate: parseFloat(document.getElementById('helocRate').value) / 100,
+                marginalTaxRate: taxRates[document.getElementById('province').value],
+                timeHorizon: parseInt(document.getElementById('timeHorizon').value)
+            };
+
+            scenarios.forEach((scenario, index) => {
+                const result = calculateScenario(baseInputs, scenario);
+                const row = tableBody.insertRow();
+
+                row.innerHTML = `
+                    <td>${scenario.name}</td>
+                    <td>$${result.finalPortfolio.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                    <td>$${result.totalTaxSavings.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                    <td>$${result.netPosition.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                    <td>${(result.roi * 100).toFixed(1)}%</td>
+                `;
+
+                if (index === 1) { // Highlight the moderate scenario
+                    row.classList.add('highlight');
+                }
+            });
+        }
+
+        function calculateScenario(inputs, scenario) {
+            const { homeValue, mortgageBalance, helocRate, marginalTaxRate, timeHorizon } = inputs;
+            const investmentReturn = scenario.returnRate;
+
+            const maxLTV = homeValue * 0.80;
+            const availableCredit = Math.max(0, maxLTV - mortgageBalance);
+            const annualInvestment = availableCredit / timeHorizon; // Simplified
+
+            let investmentBalance = 0;
+            let totalTaxSavings = 0;
+            let helocBalance = 0;
+
+            for (let year = 1; year <= timeHorizon; year++) {
+                let yearReturn = investmentReturn;
+
+                // Apply crash scenario
+                if (scenario.crash && year === 1) {
+                    yearReturn = -0.20;
+                }
+
+                helocBalance += annualInvestment;
+                investmentBalance = investmentBalance * (1 + yearReturn) + annualInvestment;
+
+                const annualTaxSavings = helocBalance * helocRate * marginalTaxRate;
+                totalTaxSavings += annualTaxSavings;
+            }
+
+            const netPosition = investmentBalance - helocBalance;
+            const totalInvested = helocBalance;
+            const roi = totalInvested > 0 ? netPosition / totalInvested : 0;
+
+            return {
+                finalPortfolio: investmentBalance,
+                totalTaxSavings: totalTaxSavings,
+                netPosition: netPosition,
+                roi: roi
+            };
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function () {
+            syncInputs();
+            calculateSmithManeuver();
+        });
+    </script>
+</body>
+
+</html>

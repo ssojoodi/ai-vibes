@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Smith Maneuver - Period Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            border-bottom: 3px solid #e74c3c;
+            padding-bottom: 1rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        .inputs-panel {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .inputs-panel h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 0.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #34495e;
+            font-size: 0.9rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #ecf0f1;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .controls {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        .visualization-panel {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .period-display {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .period-display h3 {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .period-nav {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+        }
+
+        .metric-card.negative {
+            border-left-color: #e74c3c;
+        }
+
+        .metric-card.positive {
+            border-left-color: #27ae60;
+        }
+
+        .metric-card h4 {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-card .value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .chart-container {
+            margin-top: 2rem;
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 6px;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .bar-chart {
+            display: flex;
+            align-items: end;
+            height: 200px;
+            gap: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .bar {
+            flex: 1;
+            background: #3498db;
+            border-radius: 3px 3px 0 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .bar.mortgage {
+            background: #e74c3c;
+        }
+
+        .bar.heloc {
+            background: #f39c12;
+        }
+
+        .bar.investment {
+            background: #27ae60;
+        }
+
+        .bar:hover {
+            opacity: 0.8;
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            text-align: center;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 2px;
+        }
+
+        .explanation {
+            background: #ecf0f1;
+            padding: 1.5rem;
+            border-radius: 6px;
+            margin-top: 2rem;
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .step-by-step {
+            margin-top: 2rem;
+        }
+
+        .step {
+            background: white;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 4px;
+            border-left: 3px solid #3498db;
+        }
+
+        .step h5 {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>The Smith Maneuver</h1>
+            <p>Converting mortgage debt into tax-deductible investment loans</p>
+        </div>
+
+        <div class="main-content">
+            <div class="inputs-panel">
+                <h2>Parameters</h2>
+                
+                <div class="input-group">
+                    <label for="mortgageBalance">Initial Mortgage Balance ($)</label>
+                    <input type="number" id="mortgageBalance" value="500000">
+                </div>
+
+                <div class="input-group">
+                    <label for="mortgageRate">Mortgage Rate (%)</label>
+                    <input type="number" id="mortgageRate" step="0.01" value="5.25">
+                </div>
+
+                <div class="input-group">
+                    <label for="amortization">Amortization (years)</label>
+                    <input type="number" id="amortization" value="25">
+                </div>
+
+                <div class="input-group">
+                    <label for="helocRate">HELOC Rate (%)</label>
+                    <input type="number" id="helocRate" step="0.01" value="6.50">
+                </div>
+
+                <div class="input-group">
+                    <label for="investmentReturn">Expected Investment Return (%)</label>
+                    <input type="number" id="investmentReturn" step="0.01" value="7.00">
+                </div>
+
+                <div class="input-group">
+                    <label for="taxRate">Marginal Tax Rate (%)</label>
+                    <input type="number" id="taxRate" step="0.01" value="43.50">
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="calculateSmithManeuver()">Calculate</button>
+                    <button class="btn btn-secondary" onclick="resetInputs()">Reset</button>
+                </div>
+            </div>
+
+            <div class="visualization-panel">
+                <div class="period-display">
+                    <h3 id="periodTitle">Year 1</h3>
+                    <div class="period-nav">
+                        <button class="btn btn-secondary" onclick="previousPeriod()" id="prevBtn" disabled>← Previous</button>
+                        <button class="btn btn-secondary" onclick="nextPeriod()" id="nextBtn">Next →</button>
+                    </div>
+                </div>
+
+                <div class="metrics-grid" id="metricsGrid">
+                    <!-- Metrics will be populated by JavaScript -->
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">Account Balances</div>
+                    <div class="bar-chart" id="barChart">
+                        <!-- Bars will be populated by JavaScript -->
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #e74c3c;"></div>
+                            <span>Mortgage Balance</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #f39c12;"></div>
+                            <span>HELOC Balance</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #27ae60;"></div>
+                            <span>Investment Portfolio</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-by-step" id="stepByStep">
+                    <!-- Steps will be populated by JavaScript -->
+                </div>
+
+                <div class="explanation">
+                    <strong>How it works:</strong> The Smith Maneuver converts non-deductible mortgage interest into tax-deductible investment loan interest. As you pay down your mortgage, you borrow against the increased home equity via HELOC to invest. The investment loan interest becomes tax-deductible, while your investment portfolio grows over time.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPeriod = 0;
+        let calculationData = [];
+        let maxPeriods = 0;
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-CA', {
+                style: 'currency',
+                currency: 'CAD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function formatPercent(rate) {
+            return `${rate.toFixed(2)}%`;
+        }
+
+        function calculateSmithManeuver() {
+            const mortgageBalance = parseFloat(document.getElementById('mortgageBalance').value);
+            const mortgageRate = parseFloat(document.getElementById('mortgageRate').value) / 100;
+            const amortization = parseInt(document.getElementById('amortization').value);
+            const helocRate = parseFloat(document.getElementById('helocRate').value) / 100;
+            const investmentReturn = parseFloat(document.getElementById('investmentReturn').value) / 100;
+            const taxRate = parseFloat(document.getElementById('taxRate').value) / 100;
+
+            calculationData = [];
+            maxPeriods = amortization;
+
+            // Calculate monthly payment
+            const monthlyRate = mortgageRate / 12;
+            const numPayments = amortization * 12;
+            const monthlyPayment = mortgageBalance * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
+
+            let remainingMortgage = mortgageBalance;
+            let helocBalance = 0;
+            let investmentPortfolio = 0;
+            let cumulativeTaxSavings = 0;
+            let cumulativeInterestPaid = 0;
+            let cumulativeHELOCInterest = 0;
+
+            for (let year = 1; year <= amortization; year++) {
+                let yearlyPrincipalPaydown = 0;
+                let yearlyInterestPaid = 0;
+                let startingMortgage = remainingMortgage;
+
+                // Calculate 12 monthly payments
+                for (let month = 1; month <= 12 && remainingMortgage > 0; month++) {
+                    const interestPayment = remainingMortgage * monthlyRate;
+                    const principalPayment = monthlyPayment - interestPayment;
+                    
+                    yearlyPrincipalPaydown += principalPayment;
+                    yearlyInterestPaid += interestPayment;
+                    remainingMortgage = Math.max(0, remainingMortgage - principalPayment);
+                }
+
+                // Use principal paydown to increase HELOC and invest
+                helocBalance += yearlyPrincipalPaydown;
+                investmentPortfolio *= (1 + investmentReturn); // Growth on existing portfolio
+                investmentPortfolio += yearlyPrincipalPaydown; // Add new investment
+
+                // Calculate HELOC interest (annual)
+                const helocInterestPaid = helocBalance * helocRate;
+                cumulativeHELOCInterest += helocInterestPaid;
+
+                // Tax savings from deductible HELOC interest
+                const taxSavings = helocInterestPaid * taxRate;
+                cumulativeTaxSavings += taxSavings;
+
+                cumulativeInterestPaid += yearlyInterestPaid;
+
+                calculationData.push({
+                    year,
+                    mortgageBalance: remainingMortgage,
+                    helocBalance,
+                    investmentPortfolio,
+                    principalPaydown: yearlyPrincipalPaydown,
+                    mortgageInterest: yearlyInterestPaid,
+                    helocInterest: helocInterestPaid,
+                    taxSavings,
+                    cumulativeTaxSavings,
+                    cumulativeInterestPaid,
+                    cumulativeHELOCInterest,
+                    netWorthImprovement: investmentPortfolio - helocBalance + cumulativeTaxSavings
+                });
+            }
+
+            currentPeriod = 0;
+            updateVisualization();
+        }
+
+        function updateVisualization() {
+            if (calculationData.length === 0) return;
+
+            const data = calculationData[currentPeriod];
+            
+            // Update period title
+            document.getElementById('periodTitle').textContent = `Year ${data.year}`;
+
+            // Update navigation buttons
+            document.getElementById('prevBtn').disabled = currentPeriod === 0;
+            document.getElementById('nextBtn').disabled = currentPeriod === calculationData.length - 1;
+
+            // Update metrics
+            const metricsHtml = `
+                <div class="metric-card negative">
+                    <h4>Mortgage Balance</h4>
+                    <div class="value">${formatCurrency(data.mortgageBalance)}</div>
+                </div>
+                <div class="metric-card negative">
+                    <h4>HELOC Balance</h4>
+                    <div class="value">${formatCurrency(data.helocBalance)}</div>
+                </div>
+                <div class="metric-card positive">
+                    <h4>Investment Portfolio</h4>
+                    <div class="value">${formatCurrency(data.investmentPortfolio)}</div>
+                </div>
+                <div class="metric-card positive">
+                    <h4>Annual Tax Savings</h4>
+                    <div class="value">${formatCurrency(data.taxSavings)}</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Principal Paydown</h4>
+                    <div class="value">${formatCurrency(data.principalPaydown)}</div>
+                </div>
+                <div class="metric-card negative">
+                    <h4>HELOC Interest</h4>
+                    <div class="value">${formatCurrency(data.helocInterest)}</div>
+                </div>
+                <div class="metric-card positive">
+                    <h4>Cumulative Tax Savings</h4>
+                    <div class="value">${formatCurrency(data.cumulativeTaxSavings)}</div>
+                </div>
+                <div class="metric-card positive">
+                    <h4>Net Worth Improvement</h4>
+                    <div class="value">${formatCurrency(data.netWorthImprovement)}</div>
+                </div>
+            `;
+            document.getElementById('metricsGrid').innerHTML = metricsHtml;
+
+            // Update bar chart
+            const maxValue = Math.max(data.mortgageBalance, data.helocBalance, data.investmentPortfolio);
+            const mortgageHeight = (data.mortgageBalance / maxValue) * 100;
+            const helocHeight = (data.helocBalance / maxValue) * 100;
+            const investmentHeight = (data.investmentPortfolio / maxValue) * 100;
+
+            const chartHtml = `
+                <div class="bar mortgage" style="height: ${mortgageHeight}%">
+                    <div class="bar-label">Mortgage<br>${formatCurrency(data.mortgageBalance)}</div>
+                </div>
+                <div class="bar heloc" style="height: ${helocHeight}%">
+                    <div class="bar-label">HELOC<br>${formatCurrency(data.helocBalance)}</div>
+                </div>
+                <div class="bar investment" style="height: ${investmentHeight}%">
+                    <div class="bar-label">Investments<br>${formatCurrency(data.investmentPortfolio)}</div>
+                </div>
+            `;
+            document.getElementById('barChart').innerHTML = chartHtml;
+
+            // Update step-by-step explanation
+            const stepsHtml = `
+                <div class="step">
+                    <h5>Step 1: Mortgage Payment</h5>
+                    <p>Regular mortgage payment reduces mortgage balance by ${formatCurrency(data.principalPaydown)} in principal.</p>
+                </div>
+                <div class="step">
+                    <h5>Step 2: HELOC Borrowing</h5>
+                    <p>Borrow ${formatCurrency(data.principalPaydown)} against increased home equity via HELOC.</p>
+                </div>
+                <div class="step">
+                    <h5>Step 3: Investment</h5>
+                    <p>Invest the ${formatCurrency(data.principalPaydown)} borrowed from HELOC in income-producing investments.</p>
+                </div>
+                <div class="step">
+                    <h5>Step 4: Tax Deduction</h5>
+                    <p>HELOC interest of ${formatCurrency(data.helocInterest)} becomes tax-deductible, saving ${formatCurrency(data.taxSavings)} in taxes.</p>
+                </div>
+            `;
+            document.getElementById('stepByStep').innerHTML = stepsHtml;
+        }
+
+        function previousPeriod() {
+            if (currentPeriod > 0) {
+                currentPeriod--;
+                updateVisualization();
+            }
+        }
+
+        function nextPeriod() {
+            if (currentPeriod < calculationData.length - 1) {
+                currentPeriod++;
+                updateVisualization();
+            }
+        }
+
+        function resetInputs() {
+            document.getElementById('mortgageBalance').value = '500000';
+            document.getElementById('mortgageRate').value = '5.25';
+            document.getElementById('amortization').value = '25';
+            document.getElementById('helocRate').value = '6.50';
+            document.getElementById('investmentReturn').value = '7.00';
+            document.getElementById('taxRate').value = '43.50';
+            calculationData = [];
+            currentPeriod = 0;
+            document.getElementById('metricsGrid').innerHTML = '';
+            document.getElementById('barChart').innerHTML = '';
+            document.getElementById('stepByStep').innerHTML = '';
+        }
+
+        // Initialize with default calculation
+        calculateSmithManeuver();
+    </script>
+</body>
+</html>
