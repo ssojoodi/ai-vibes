@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-card">
+        <h1>Add New Events</h1>
+        <p class="form-description">
+            Describe your events in natural language, and our AI will automatically parse them into calendar entries.
+        </p>
+
+        <form method="POST" class="event-form">
+            <div class="form-group">
+                <label for="description">Event Description</label>
+                <textarea id="description" name="description" rows="6"
+                    placeholder="Example: Soccer practice for Tommy every Tuesday and Thursday at 3:30pm starting next week, lunch with Sarah tomorrow at 12pm, dentist appointment for Mom on June 25th at 2pm"
+                    required></textarea>
+            </div>
+
+            <div class="family-members-info">
+                <h3>Family Members</h3>
+                <div class="members-list">
+                    {% for member in family_members %}
+                    <div class="member-item">
+                        <div class="member-color" style="background-color: {{ member.color }}"></div>
+                        <span>{{ member.name }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-magic"></i>
+                Parse & Add Events
+            </button>
+        </form>
+
+        <div class="examples">
+            <h3>Example Descriptions</h3>
+            <ul>
+                <li>"Soccer practice for Tommy every Tuesday at 4pm starting next week"</li>
+                <li>"Dentist appointment tomorrow at 2:30pm for Mom"</li>
+                <li>"Piano lessons for Sarah on Mondays and Wednesdays at 3pm"</li>
+                <li>"Parent-teacher conference next Friday at 10am"</li>
+                <li>"Birthday party for Jake next Saturday from 2pm to 5pm"</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
