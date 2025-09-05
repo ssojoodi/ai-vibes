@@ -1,0 +1,49 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Cost Codes</h5>
+        <a href="{{ url_for('create_cost_code') }}" class="btn btn-primary btn-sm">Add Cost Code</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Project</th>
+                        <th>Code</th>
+                        <th>Description</th>
+                        <th>Phase</th>
+                        <th>Activity</th>
+                        <th>Budget Hours</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for code in cost_codes %}
+                    <tr>
+                        <td>{{ code.project.name }}</td>
+                        <td>{{ code.code }}</td>
+                        <td>{{ code.description }}</td>
+                        <td>{{ code.phase }}</td>
+                        <td>{{ code.activity }}</td>
+                        <td>{{ "%.1f"|format(code.budget_hours or 0) }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if code.is_active else 'danger' }}">
+                                {{ 'Active' if code.is_active else 'Inactive' }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('edit_cost_code', cost_code_id=code.id) }}" 
+                               class="btn btn-sm btn-primary">Edit</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

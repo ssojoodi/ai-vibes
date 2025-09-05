@@ -1,0 +1,147 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Timesheet Details</h5>
+            <div>
+                {% if timesheet.status == 'draft' %}
+                <a href="{{ url_for('edit_timesheet', timesheet_id=timesheet.id) }}" class="btn btn-primary">Edit</a>
+                {% endif %}
+                <a href="{{ url_for('timesheet_list') }}" class="btn btn-secondary">Back to List</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <strong>Date:</strong>
+                    <p>{{ timesheet.date }}</p>
+                </div>
+                <div class="col-md-3">
+                    <strong>Project:</strong>
+                    <p>{{ timesheet.project.name }}</p>
+                </div>
+                <div class="col-md-3">
+                    <strong>Crew:</strong>
+                    <p>{{ timesheet.crew.name }}</p>
+                </div>
+                <div class="col-md-3">
+                    <strong>Status:</strong>
+                    <p>
+                        <span class="badge bg-{{ status_colors[timesheet.status] }}">
+                            {{ timesheet.status.value|title|replace('_', ' ') }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Worker</th>
+                            <th>Cost Code</th>
+                            <th>Regular Hours</th>
+                            <th>Overtime Hours</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in timesheet.entries %}
+                        <tr>
+                            <td>{{ entry.user.first_name }} {{ entry.user.last_name }}</td>
+                            <td>{{ entry.cost_code.code }} - {{ entry.cost_code.description }}</td>
+                            <td>{{ "%.1f"|format(entry.hours) }}</td>
+                            <td>{{ "%.1f"|format(entry.overtime_hours) }}</td>
+                            <td>{{ entry.description }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-info">
+                            <td colspan="2"><strong>Total Hours:</strong></td>
+                            <td><strong>{{ "%.1f"|format(timesheet.total_hours) }}</strong></td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            {% if timesheet.status != 'draft' %}
+            <div class="mt-4">
+                <h6>Approval History</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Action</th>
+                                <th>By</th>
+                                <th>Comments</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for approval in timesheet.approvals|sort(attribute='created_at', reverse=true) %}
+                            <tr>
+                                <td>{{ approval.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>{{ approval.action.value|title }}</td>
+                                <td>{{ approval.approver.first_name }} {{ approval.approver.last_name }}</td>
+                                <td>{{ approval.comments }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="mt-4">
+                {% if timesheet.status == TimesheetStatus.DRAFT %}
+                <form method="POST" action="{{ url_for('submit_timesheet', timesheet_id=timesheet.id) }}"
+                    class="d-inline">
+                    <button type="submit" class="btn btn-primary">Submit for Approval</button>
+                </form>
+                {% endif %}
+
+                {% if timesheet.status == TimesheetStatus.PENDING_SUPER and current_user.role in
+                [UserRole.SUPERINTENDENT, UserRole.PROJECT_MANAGER, UserRole.ADMIN] %}
+                <form method="POST" action="{{ url_for('approve_timesheet', timesheet_id=timesheet.id) }}"
+                    class="d-inline">
+                    <input type="text" class="form-control d-inline-block w-auto me-2" name="comments"
+                        placeholder="Comments (optional)">
+                    <button type="submit" class="btn btn-success">Approve as {{ 'PM' if current_user.role ==
+                        UserRole.PROJECT_MANAGER else 'Superintendent' }}</button>
+                </form>
+                {% endif %}
+
+                {% if timesheet.status == TimesheetStatus.PENDING_PM and current_user.role in [UserRole.PROJECT_MANAGER,
+                UserRole.ADMIN] %}
+                <form method="POST" action="{{ url_for('approve_timesheet', timesheet_id=timesheet.id) }}"
+                    class="d-inline">
+                    <input type="text" class="form-control d-inline-block w-auto me-2" name="comments"
+                        placeholder="Comments (optional)">
+                    <button type="submit" class="btn btn-success">Approve as Project Manager</button>
+                </form>
+                {% endif %}
+
+                {% if timesheet.status == TimesheetStatus.PENDING_PAYROLL and current_user.role in [UserRole.PAYROLL,
+                UserRole.ADMIN] %}
+                <form method="POST" action="{{ url_for('approve_timesheet', timesheet_id=timesheet.id) }}"
+                    class="d-inline">
+                    <input type="text" class="form-control d-inline-block w-auto me-2" name="comments"
+                        placeholder="Comments (optional)">
+                    <button type="submit" class="btn btn-success">Approve for Payroll</button>
+                </form>
+                {% endif %}
+
+                {% if timesheet.status == TimesheetStatus.DRAFT %}
+                <form method="POST" action="{{ url_for('submit_all_draft_timesheets') }}" class="d-inline ms-2">
+                    <button type="submit" class="btn btn-warning">Submit All Draft Timesheets</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

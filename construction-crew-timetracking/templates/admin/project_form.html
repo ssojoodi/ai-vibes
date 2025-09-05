@@ -1,0 +1,85 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">{{ 'Edit' if project is defined else 'New' }} Project</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" class="needs-validation" novalidate>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="code" class="form-label">Project Code</label>
+                    <input type="text" class="form-control" id="code" name="code" required
+                        value="{{ project.code if project is defined else '' }}">
+                    <div class="invalid-feedback">Project code is required</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="name" class="form-label">Project Name</label>
+                    <input type="text" class="form-control" id="name" name="name" required
+                        value="{{ project.name if project is defined else '' }}">
+                    <div class="invalid-feedback">Project name is required</div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description"
+                    rows="3">{{ project.description if project is defined else '' }}</textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" required
+                        value="{{ project.start_date if project is defined else '' }}">
+                    <div class="invalid-feedback">Start date is required</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="end_date" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date"
+                        value="{{ project.end_date if project is defined else '' }}">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="budget_hours" class="form-label">Budget Hours</label>
+                <input type="number" class="form-control" id="budget_hours" name="budget_hours" step="0.5" min="0"
+                    value="{{ " %.1f"|format(project.budget_hours) if project is defined else '0.0' }}">
+            </div>
+
+            {% if project is defined %}
+            <div class="mb-3">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active" {{ 'checked' if
+                        project.is_active else '' }}>
+                    <label class="form-check-label" for="is_active">Active</label>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('admin_projects') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    {{ 'Save Changes' if project is defined else 'Create Project' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2>Timesheets</h2>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('web_create_timesheet') }}" class="btn btn-primary me-2">New Timesheet</a>
+        <a href="{{ url_for('bulk_upload_timesheets') }}" class="btn btn-success me-2">Bulk Upload</a>
+        {% if current_user.role in [UserRole.SUPERINTENDENT, UserRole.PROJECT_MANAGER, UserRole.PAYROLL, UserRole.ADMIN]
+        %}
+        <a href="{{ url_for('bulk_approve_timesheets') }}" class="btn btn-info me-2">Bulk Approve</a>
+        {% endif %}
+        <form method="POST" action="{{ url_for('submit_all_draft_timesheets') }}" style="display: inline;">
+            <button type="submit" class="btn btn-warning">Submit All Draft Timesheets</button>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form class="row g-3 mb-4" method="GET">
+            <div class="col-auto">
+                <select class="form-select" name="project_id">
+                    <option value="">All Projects</option>
+                    {% for project in projects %}
+                    <option value="{{ project.id }}" {% if project.id==selected_project_id %}selected{% endif %}>
+                        {{ project.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <input type="date" class="form-control" name="date" value="{{ selected_date }}">
+            </div>
+            <div class="col-auto">
+                <select class="form-select" name="status">
+                    <option value="">All Statuses</option>
+                    {% for status in statuses %}
+                    <option value="{{ status.value }}" {% if status.value==selected_status %}selected{% endif %}>
+                        {{ status.value|title|replace('_', ' ') }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Filter</button>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Project</th>
+                        <th>Crew</th>
+                        <th>Status</th>
+                        <th>Total Hours</th>
+                        <th>Entries</th>
+                        <th>Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for timesheet in timesheets %}
+                    <tr>
+                        <td>{{ timesheet.date }}</td>
+                        <td>{{ timesheet.project.name }}</td>
+                        <td>{{ timesheet.crew.name }}</td>
+                        <td>
+                            <span class="badge bg-{{ status_colors[timesheet.status] }}">
+                                {{ timesheet.status.value|title|replace('_', ' ') }}
+                            </span>
+                        </td>
+                        <td>{{ "%.1f"|format(timesheet.total_hours) }}</td>
+                        <td>{{ timesheet.entry_count }}</td>
+                        <td>{{ timesheet.submitted_at|default('Not submitted', true) }}</td>
+                        <td>
+                            <a href="{{ url_for('view_timesheet', timesheet_id=timesheet.id) }}"
+                                class="btn btn-sm btn-info">View</a>
+                            {% if timesheet.status == 'draft' %}
+                            <a href="{{ url_for('edit_timesheet', timesheet_id=timesheet.id) }}"
+                                class="btn btn-sm btn-primary">Edit</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

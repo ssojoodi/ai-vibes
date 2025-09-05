@@ -1,0 +1,4 @@
+email,first_name,last_name,role,phone
+john.doe@example.com,John,Doe,worker,555-0123
+jane.smith@example.com,Jane,Smith,superintendent,555-0124
+bob.jones@example.com,Bob,Jones,crew_admin,555-0125

@@ -1,0 +1,112 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Bulk Approve Timesheets</h5>
+            <a href="{{ url_for('timesheet_list') }}" class="btn btn-secondary">Back to List</a>
+        </div>
+        <div class="card-body">
+            <form method="POST" class="needs-validation" novalidate>
+                <div class="table-responsive mb-4">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="select-all">
+                                        <label class="form-check-label" for="select-all">Select All</label>
+                                    </div>
+                                </th>
+                                <th>Date</th>
+                                <th>Project</th>
+                                <th>Crew</th>
+                                <th>Status</th>
+                                <th>Total Hours</th>
+                                <th>Entries</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for timesheet in timesheets %}
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input timesheet-select"
+                                            name="timesheet_ids[]" value="{{ timesheet.id }}">
+                                    </div>
+                                </td>
+                                <td>{{ timesheet.date }}</td>
+                                <td>{{ timesheet.project.name }}</td>
+                                <td>{{ timesheet.crew.name }}</td>
+                                <td>
+                                    <span class="badge bg-{{ status_colors[timesheet.status] }}">
+                                        {{ timesheet.status.value|title|replace('_', ' ') }}
+                                    </span>
+                                </td>
+                                <td>{{ "%.1f"|format(timesheet.total_hours) }}</td>
+                                <td>{{ timesheet.entry_count }}</td>
+                                <td>
+                                    <a href="{{ url_for('view_timesheet', timesheet_id=timesheet.id) }}"
+                                        class="btn btn-sm btn-info">View</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mb-3">
+                    <label for="comments" class="form-label">Approval Comments</label>
+                    <textarea class="form-control" id="comments" name="comments" rows="2"
+                        placeholder="Optional comments for all selected timesheets"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-success" id="approve-btn" disabled>
+                    Approve Selected Timesheets
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectAll = document.getElementById('select-all');
+        const timesheetCheckboxes = document.querySelectorAll('.timesheet-select');
+        const approveBtn = document.getElementById('approve-btn');
+
+        function updateApproveButton() {
+            const selectedCount = document.querySelectorAll('.timesheet-select:checked').length;
+            approveBtn.disabled = selectedCount === 0;
+            approveBtn.textContent = `Approve Selected Timesheets (${selectedCount})`;
+        }
+
+        selectAll.addEventListener('change', function () {
+            timesheetCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+            });
+            updateApproveButton();
+        });
+
+        timesheetCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                selectAll.checked = Array.from(timesheetCheckboxes).every(cb => cb.checked);
+                updateApproveButton();
+            });
+        });
+
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function (event) {
+            const selectedCount = document.querySelectorAll('.timesheet-select:checked').length;
+            if (selectedCount === 0) {
+                event.preventDefault();
+                alert('Please select at least one timesheet to approve.');
+            }
+        });
+    });
+</script>
+{% endblock %}
