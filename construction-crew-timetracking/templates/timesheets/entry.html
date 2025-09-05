@@ -1,0 +1,226 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2>{% if timesheet %}Edit{% else %}New{% endif %} Timesheet</h2>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" id="timesheetForm">
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="project" class="form-label">Project</label>
+                        <select class="form-select" id="project" name="project_id" required {% if timesheet %}disabled{%
+                            endif %}>
+                            <option value="">Select Project</option>
+                            {% for project in projects %}
+                            <option value="{{ project.id }}" {% if timesheet and timesheet.project_id==project.id
+                                %}selected{% endif %}>
+                                {{ project.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="crew" class="form-label">Crew</label>
+                        <select class="form-select" id="crew" name="crew_id" required {% if timesheet %}disabled{% endif
+                            %}>
+                            <option value="">Select Crew</option>
+                            {% for crew in crews %}
+                            <option value="{{ crew.id }}" {% if timesheet and timesheet.crew_id==crew.id %}selected{%
+                                endif %}>
+                                {{ crew.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="date" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="date" name="date" required
+                            value="{{ timesheet.date if timesheet else '' }}" {% if timesheet %}readonly{% endif %}>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Time Entries</h5>
+                    <button type="button" class="btn btn-primary btn-sm" id="addEntry">Add Entry</button>
+                </div>
+                <div class="card-body">
+                    <div id="entriesContainer">
+                        {% if timesheet %}
+                        {% for entry in timesheet.entries %}
+                        <div class="entry-row row mb-3">
+                            <div class="col-md-3">
+                                <select class="form-select" name="user_ids[]" required>
+                                    {% for user in crew_members %}
+                                    <option value="{{ user.id }}" {% if entry.user_id==user.id %}selected{% endif %}>
+                                        {{ user.first_name }} {{ user.last_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select" name="cost_code_ids[]" required>
+                                    {% for code in cost_codes %}
+                                    <option value="{{ code.id }}" {% if entry.cost_code_id==code.id %}selected{% endif
+                                        %}>
+                                        {{ code.code }} - {{ code.description }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="number" class="form-control" name="hours[]" step="0.5" min="0" max="24"
+                                    required value="{{ entry.hours }}">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="number" class="form-control" name="overtime_hours[]" step="0.5" min="0"
+                                    max="24" required value="{{ entry.overtime_hours }}">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-danger btn-sm remove-entry">Remove</button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <a href="{{ url_for('timesheet_list') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+                <div class="col text-end">
+                    {% if timesheet and timesheet.status == 'draft' %}
+                    <button type="submit" class="btn btn-success" name="action" value="submit">Submit for
+                        Approval</button>
+                    {% endif %}
+                    <button type="submit" class="btn btn-primary" name="action" value="save">Save Draft</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const entriesContainer = document.getElementById('entriesContainer');
+        const addEntryBtn = document.getElementById('addEntry');
+        const projectSelect = document.getElementById('project');
+        const crewSelect = document.getElementById('crew');
+
+        let crewMembersOptions = '';
+        let costCodesOptions = '';
+
+        // Template for new entry row
+        function createEntryRow() {
+            return `
+            <div class="entry-row row mb-3">
+                <div class="col-md-3">
+                    <select class="form-select" name="user_ids[]" required>
+                        <option value="">Select Worker</option>
+                        ${crewMembersOptions}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" name="cost_code_ids[]" required>
+                        <option value="">Select Cost Code</option>
+                        ${costCodesOptions}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="number" class="form-control" name="hours[]" 
+                           step="0.5" min="0" max="24" required placeholder="Regular Hours">
+                </div>
+                <div class="col-md-2">
+                    <input type="number" class="form-control" name="overtime_hours[]" 
+                           step="0.5" min="0" max="24" required value="0" placeholder="Overtime">
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-danger btn-sm remove-entry">Remove</button>
+                </div>
+            </div>
+        `;
+        }
+
+        // Add new entry row
+        addEntryBtn.addEventListener('click', function () {
+            const newRow = document.createElement('div');
+            newRow.innerHTML = createEntryRow();
+            entriesContainer.appendChild(newRow.firstElementChild);
+        });
+
+        // Remove entry row
+        entriesContainer.addEventListener('click', function (e) {
+            if (e.target.classList.contains('remove-entry')) {
+                e.target.closest('.entry-row').remove();
+            }
+        });
+
+        // Update crew members when project changes
+        projectSelect.addEventListener('change', function () {
+            const projectId = this.value;
+            if (projectId) {
+                // Get crews for the project
+                fetch(`/api/projects/${projectId}/crews`)
+                    .then(response => response.json())
+                    .then(crews => {
+                        crewSelect.innerHTML = '<option value="">Select Crew</option>' +
+                            crews.map(crew => `<option value="${crew.id}">${crew.name}</option>`).join('');
+                    });
+
+                // Get cost codes for the project
+                fetch(`/api/projects/${projectId}/cost-codes`)
+                    .then(response => response.json())
+                    .then(codes => {
+                        costCodesOptions = codes
+                            .map(code => `<option value="${code.id}">${code.code} - ${code.description}</option>`)
+                            .join('');
+
+                        // Update existing cost code selects
+                        document.querySelectorAll('select[name="cost_code_ids[]"]').forEach(select => {
+                            select.innerHTML = '<option value="">Select Cost Code</option>' + costCodesOptions;
+                        });
+                    });
+            }
+        });
+
+        // Update crew members when crew changes
+        crewSelect.addEventListener('change', function () {
+            const crewId = this.value;
+            if (crewId) {
+                fetch(`/api/crews/${crewId}/members`)
+                    .then(response => response.json())
+                    .then(members => {
+                        crewMembersOptions = members
+                            .map(member => `<option value="${member.id}">${member.first_name} ${member.last_name}</option>`)
+                            .join('');
+
+                        // Update existing user selects
+                        document.querySelectorAll('select[name="user_ids[]"]').forEach(select => {
+                            select.innerHTML = '<option value="">Select Worker</option>' + crewMembersOptions;
+                        });
+                    });
+            }
+        });
+
+        // Add initial entry row if none exists
+        if (entriesContainer.children.length === 0) {
+            addEntryBtn.click();
+        }
+    });
+</script>
+{% endblock %}

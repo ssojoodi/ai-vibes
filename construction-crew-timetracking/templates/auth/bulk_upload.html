@@ -1,0 +1,68 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Bulk Upload Users</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                <div class="mb-4">
+                    <h6>Instructions:</h6>
+                    <p>Upload a CSV file with the following columns:</p>
+                    <ul>
+                        <li><code>email</code> - User's email address (required)</li>
+                        <li><code>first_name</code> - User's first name (required)</li>
+                        <li><code>last_name</code> - User's last name (required)</li>
+                        <li><code>role</code> - User role: 'worker', 'crew_admin', 'superintendent', 'project_manager',
+                            'payroll', or 'admin' (required)</li>
+                        <li><code>phone</code> - Phone number (optional)</li>
+                    </ul>
+                    <p>Download the <a href="{{ url_for('download_template') }}">template CSV file</a>.</p>
+                </div>
+
+                <div class="mb-3">
+                    <label for="csv_file" class="form-label">CSV File</label>
+                    <input type="file" class="form-control" id="csv_file" name="csv_file" accept=".csv" required>
+                    <div class="invalid-feedback">Please select a CSV file</div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="send_emails" name="send_emails" checked>
+                        <label class="form-check-label" for="send_emails">Send welcome emails with login
+                            credentials</label>
+                    </div>
+                </div>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                <button type="submit" class="btn btn-primary">Upload Users</button>
+                <a href="{{ url_for('user_list') }}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+    });
+</script>
+{% endblock %}

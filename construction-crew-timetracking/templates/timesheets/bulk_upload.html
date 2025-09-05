@@ -1,0 +1,166 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Bulk Upload Timesheet Entries</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                <div class="mb-4">
+                    <h6>Instructions:</h6>
+                    <p>Upload a CSV file with the following columns:</p>
+                    <ul>
+                        <li><code>date</code> - Date in YYYY-MM-DD format (required)</li>
+                        <li><code>project_id</code> - Project ID (required)</li>
+                        <li><code>crew_id</code> - Crew ID (required)</li>
+                        <li><code>user_id</code> - User ID (required)</li>
+                        <li><code>cost_code_id</code> - Cost Code ID (required)</li>
+                        <li><code>hours</code> - Regular hours worked (required)</li>
+                        <li><code>overtime_hours</code> - Overtime hours (optional, defaults to 0)</li>
+                        <li><code>description</code> - Work description (optional)</li>
+                    </ul>
+                    <p>Download the <a href="{{ url_for('download_timesheet_template') }}">template CSV file</a>.</p>
+                </div>
+
+                <div class="mb-3">
+                    <label for="csv_file" class="form-label">CSV File</label>
+                    <input type="file" class="form-control" id="csv_file" name="csv_file" accept=".csv" required>
+                    <div class="invalid-feedback">Please select a CSV file</div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="submit_timesheets" name="submit_timesheets">
+                        <label class="form-check-label" for="submit_timesheets">Submit timesheets for approval after
+                            upload</label>
+                    </div>
+                </div>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                <button type="submit" class="btn btn-primary">Upload Entries</button>
+                <a href="{{ url_for('timesheet_list') }}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Reference Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Projects</h6>
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for project in projects %}
+                            <tr>
+                                <td>{{ project.id }}</td>
+                                <td>{{ project.name }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6>Crews</h6>
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Project</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for crew in crews %}
+                            <tr>
+                                <td>{{ crew.id }}</td>
+                                <td>{{ crew.name }}</td>
+                                <td>{{ crew.project.name }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h6>Users</h6>
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>{{ user.id }}</td>
+                                <td>{{ user.first_name }} {{ user.last_name }}</td>
+                                <td>{{ user.role.value }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6>Cost Codes</h6>
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Code</th>
+                                <th>Description</th>
+                                <th>Project</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cost_code in cost_codes %}
+                            <tr>
+                                <td>{{ cost_code.id }}</td>
+                                <td>{{ cost_code.code }}</td>
+                                <td>{{ cost_code.description }}</td>
+                                <td>{{ cost_code.project.name }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+    });
+</script>
+{% endblock %}

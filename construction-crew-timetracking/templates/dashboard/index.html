@@ -1,0 +1,168 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2>Labor Dashboard</h2>
+    </div>
+    <div class="col-auto">
+        <form class="row g-3" method="GET">
+            <div class="col-auto">
+                <select class="form-select" name="project_id" id="project-select">
+                    <option value="">All Projects</option>
+                    {% for project in projects %}
+                    <option value="{{ project.id }}" {% if project.id==selected_project_id %}selected{% endif %}>
+                        {{ project.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <input type="date" class="form-control" name="date_from" value="{{ date_from }}" required>
+            </div>
+            <div class="col-auto">
+                <input type="date" class="form-control" name="date_to" value="{{ date_to }}" required>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Update</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Labor Hours by Cost Code</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="costCodeChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Budget vs. Actual Hours</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="budgetChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Detailed Labor Summary</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Cost Code</th>
+                        <th>Description</th>
+                        <th>Phase</th>
+                        <th>Budget Hours</th>
+                        <th>Actual Hours</th>
+                        <th>Overtime Hours</th>
+                        <th>Variance</th>
+                        <th>Utilization</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in labor_summary %}
+                    <tr
+                        class="{{ 'table-danger' if item.variance > 0 else 'table-success' if item.variance < 0 else '' }}">
+                        <td>{{ item.cost_code }}</td>
+                        <td>{{ item.description }}</td>
+                        <td>{{ item.phase }}</td>
+                        <td>{{ "%.1f"|format(item.budget_hours) }}</td>
+                        <td>{{ "%.1f"|format(item.actual_hours) }}</td>
+                        <td>{{ "%.1f"|format(item.overtime_hours) }}</td>
+                        <td>{{ "%.1f"|format(item.variance) }}</td>
+                        <td>{{ "%.1f%%"|format(item.utilization) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Labor Hours by Cost Code Chart
+        const costCodeCtx = document.getElementById('costCodeChart').getContext('2d');
+        new Chart(costCodeCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ cost_code_labels| tojson }},
+        datasets: [{
+            label: 'Regular Hours',
+            data: {{ regular_hours| tojson }},
+        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+            }, {
+            label: 'Overtime Hours',
+            data: {{ overtime_hours| tojson }},
+        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 1
+            }]
+        },
+        options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Hours'
+                }
+            }
+        }
+    }
+    });
+
+    // Budget vs. Actual Chart
+    const budgetCtx = document.getElementById('budgetChart').getContext('2d');
+    new Chart(budgetCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ cost_code_labels| tojson }},
+        datasets: [{
+            label: 'Budget Hours',
+            data: {{ budget_hours| tojson }},
+        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1
+            }, {
+            label: 'Actual Hours',
+            data: {{ actual_hours| tojson }},
+        backgroundColor: 'rgba(153, 102, 255, 0.5)',
+        borderColor: 'rgba(153, 102, 255, 1)',
+        borderWidth: 1
+            }]
+        },
+        options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Hours'
+                }
+            }
+        }
+    }
+    });
+});
+</script>
+{% endblock %}

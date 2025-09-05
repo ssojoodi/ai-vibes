@@ -1,0 +1,92 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">{{ 'Edit' if cost_code is defined else 'New' }} Cost Code</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" class="needs-validation" novalidate>
+            <div class="mb-3">
+                <label for="project_id" class="form-label">Project</label>
+                <select class="form-select" id="project_id" name="project_id" required>
+                    <option value="">Select Project</option>
+                    {% for project in projects %}
+                    <option value="{{ project.id }}" {% if cost_code is defined and cost_code.project_id==project.id
+                        %}selected{% endif %}>
+                        {{ project.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <div class="invalid-feedback">Project is required</div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="code" class="form-label">Cost Code</label>
+                    <input type="text" class="form-control" id="code" name="code" required
+                        value="{{ cost_code.code if cost_code is defined else '' }}">
+                    <div class="invalid-feedback">Cost code is required</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <input type="text" class="form-control" id="description" name="description" required
+                        value="{{ cost_code.description if cost_code is defined else '' }}">
+                    <div class="invalid-feedback">Description is required</div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="phase" class="form-label">Phase</label>
+                    <input type="text" class="form-control" id="phase" name="phase"
+                        value="{{ cost_code.phase if cost_code is defined else '' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="activity" class="form-label">Activity</label>
+                    <input type="text" class="form-control" id="activity" name="activity"
+                        value="{{ cost_code.activity if cost_code is defined else '' }}">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="budget_hours" class="form-label">Budget Hours</label>
+                <input type="number" class="form-control" id="budget_hours" name="budget_hours" step="0.5" min="0"
+                    value="{{ " %.1f"|format(cost_code.budget_hours) if cost_code is defined else '0.0' }}">
+            </div>
+
+            {% if cost_code is defined %}
+            <div class="mb-3">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active" {{ 'checked' if
+                        cost_code.is_active else '' }}>
+                    <label class="form-check-label" for="is_active">Active</label>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('admin_cost_codes') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    {{ 'Save Changes' if cost_code is defined else 'Create Cost Code' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+    });
+</script>
+{% endblock %}

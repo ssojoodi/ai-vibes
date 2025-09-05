@@ -1,0 +1,62 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2>Users</h2>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('web_signup') }}" class="btn btn-primary me-2">Add New User</a>
+        <a href="{{ url_for('bulk_upload_users') }}" class="btn btn-success">Bulk Upload Users</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.first_name }} {{ user.last_name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            <span class="badge bg-info">
+                                {{ user.role.value|title|replace('_', ' ') }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if user.is_active else 'danger' }}">
+                                {{ 'Active' if user.is_active else 'Inactive' }}
+                            </span>
+                        </td>
+                        <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('toggle_user_status', user_id=user.id) }}"
+                                style="display: inline;">
+                                <button type="submit"
+                                    class="btn btn-sm btn-{{ 'danger' if user.is_active else 'success' }}">
+                                    {{ 'Deactivate' if user.is_active else 'Activate' }}
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

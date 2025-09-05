@@ -1,0 +1,98 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">{{ 'Edit' if crew is defined else 'New' }} Crew</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" class="needs-validation" novalidate>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="name" class="form-label">Crew Name</label>
+                    <input type="text" class="form-control" id="name" name="name" required
+                        value="{{ crew.name if crew is defined else '' }}">
+                    <div class="invalid-feedback">Crew name is required</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="project_id" class="form-label">Project</label>
+                    <select class="form-select" id="project_id" name="project_id" required>
+                        <option value="">Select Project</option>
+                        {% for project in projects %}
+                        <option value="{{ project.id }}" {% if crew is defined and crew.project_id==project.id
+                            %}selected{% endif %}>
+                            {{ project.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <div class="invalid-feedback">Project is required</div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="supervisor_id" class="form-label">Supervisor</label>
+                <select class="form-select" id="supervisor_id" name="supervisor_id" required>
+                    <option value="">Select Supervisor</option>
+                    {% for supervisor in supervisors %}
+                    <option value="{{ supervisor.id }}" {% if crew is defined and crew.supervisor_id==supervisor.id
+                        %}selected{% endif %}>
+                        {{ supervisor.first_name }} {{ supervisor.last_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <div class="invalid-feedback">Supervisor is required</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Crew Members</label>
+                <div class="card">
+                    <div class="card-body">
+                        {% for worker in workers %}
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="worker_{{ worker.id }}"
+                                name="member_ids[]" value="{{ worker.id }}" {% if crew is defined and worker.id in
+                                current_members %}checked{% endif %}>
+                            <label class="form-check-label" for="worker_{{ worker.id }}">
+                                {{ worker.first_name }} {{ worker.last_name }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            {% if crew is defined %}
+            <div class="mb-3">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active" {{ 'checked' if
+                        crew.is_active else '' }}>
+                    <label class="form-check-label" for="is_active">Active</label>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('admin_crews') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    {{ 'Save Changes' if crew is defined else 'Create Crew' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+    });
+</script>
+{% endblock %}

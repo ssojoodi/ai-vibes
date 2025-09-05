@@ -1,0 +1,45 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Crews</h5>
+        <a href="{{ url_for('create_crew') }}" class="btn btn-primary btn-sm">Add Crew</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Project</th>
+                        <th>Supervisor</th>
+                        <th>Members</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for crew in crews %}
+                    <tr>
+                        <td>{{ crew.name }}</td>
+                        <td>{{ crew.project.name }}</td>
+                        <td>{{ crew.supervisor.first_name }} {{ crew.supervisor.last_name }}</td>
+                        <td>{{ crew.members|length }} members</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if crew.is_active else 'danger' }}">
+                                {{ 'Active' if crew.is_active else 'Inactive' }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('edit_crew', crew_id=crew.id) }}" 
+                               class="btn btn-sm btn-primary">Edit</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
