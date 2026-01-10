@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Time Zones</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #0b0d12;
+        --card: rgba(255, 255, 255, 0.06);
+        --stroke: rgba(255, 255, 255, 0.1);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.62);
+        --danger: #ff6b6b;
+        --shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+        --radius: 18px;
+      }
+
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #f6f7fb;
+          --card: rgba(255, 255, 255, 0.85);
+          --stroke: rgba(15, 23, 42, 0.12);
+          --text: rgba(15, 23, 42, 0.92);
+          --muted: rgba(15, 23, 42, 0.58);
+          --shadow: 0 24px 70px rgba(15, 23, 42, 0.18);
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+          Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        color: var(--text);
+        background: radial-gradient(
+            1200px 800px at 20% 10%,
+            rgba(125, 211, 252, 0.2),
+            transparent 55%
+          ),
+          radial-gradient(
+            900px 600px at 80% 30%,
+            rgba(196, 181, 253, 0.18),
+            transparent 55%
+          ),
+          radial-gradient(
+            900px 700px at 50% 90%,
+            rgba(34, 197, 94, 0.12),
+            transparent 60%
+          ),
+          var(--bg);
+        display: grid;
+        place-items: center;
+        padding: 22px;
+      }
+
+      .app {
+        width: min(780px, 100%);
+        border: 1px solid var(--stroke);
+        background: var(--card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 18px 18px 16px;
+        backdrop-filter: blur(10px);
+      }
+
+      header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 2px 2px 10px;
+      }
+
+      h1 {
+        font-size: 16px;
+        letter-spacing: 0.2px;
+        margin: 0;
+        font-weight: 600;
+      }
+
+      .hint {
+        font-size: 12px;
+        color: var(--muted);
+        margin: 0;
+        text-align: right;
+      }
+
+      .top {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: end;
+        padding: 10px 2px 14px;
+      }
+
+      label {
+        display: block;
+        font-size: 12px;
+        color: var(--muted);
+        margin: 0 0 6px;
+      }
+
+      input,
+      button {
+        font: inherit;
+        color: inherit;
+      }
+
+      .timeInput,
+      .tz {
+        width: 100%;
+        border-radius: 12px;
+        border: 1px solid var(--stroke);
+        background: rgba(0, 0, 0, 0.08);
+        padding: 10px 12px;
+        outline: none;
+      }
+
+      @media (prefers-color-scheme: light) {
+        .timeInput,
+        .tz {
+          background: rgba(255, 255, 255, 0.8);
+        }
+      }
+
+      .timeInput:focus,
+      .tz:focus {
+        border-color: rgba(125, 211, 252, 0.55);
+        box-shadow: 0 0 0 4px rgba(125, 211, 252, 0.18);
+      }
+
+      .timeRow {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .timeInput {
+        flex: 1;
+        min-width: 0;
+      }
+      .btn.small {
+        padding: 10px 10px;
+        min-width: 56px;
+      }
+
+      .timeBad .timeInput {
+        border-color: color-mix(in oklab, var(--danger), var(--stroke) 55%);
+      }
+
+      .btn {
+        border-radius: 12px;
+        border: 1px solid var(--stroke);
+        background: rgba(255, 255, 255, 0.06);
+        padding: 10px 12px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .btn:active {
+        transform: translateY(1px);
+      }
+
+      .rows {
+        display: grid;
+        gap: 10px;
+        padding: 0 2px 8px;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1.25fr 1fr auto;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .out {
+        border-radius: 12px;
+        border: 1px solid var(--stroke);
+        padding: 10px 12px;
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        background: rgba(0, 0, 0, 0.06);
+      }
+
+      @media (prefers-color-scheme: light) {
+        .out {
+          background: rgba(255, 255, 255, 0.65);
+        }
+      }
+
+      .time {
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.2px;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .rm {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        display: grid;
+        place-items: center;
+      }
+
+      .err {
+        font-size: 12px;
+        color: color-mix(in oklab, var(--danger), var(--text) 35%);
+        margin-top: 4px;
+        padding-left: 2px;
+        display: none;
+      }
+      .row.invalid .err {
+        display: block;
+      }
+
+      @media (max-width: 560px) {
+        header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .hint {
+          text-align: left;
+        }
+        .top {
+          grid-template-columns: 1fr;
+        }
+        .row {
+          grid-template-columns: 1fr;
+        }
+        .rm {
+          width: 100%;
+          height: 42px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <header>
+        <h1>Time Zones</h1>
+        <p class="hint">Type a local time, everything updates instantly.</p>
+      </header>
+
+      <section class="top" aria-label="Input">
+        <div id="timeWrap">
+          <label for="t">Local time (today)</label>
+          <div class="timeRow">
+            <input
+              id="t"
+              class="timeInput"
+              type="text"
+              inputmode="text"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="4pm, 16:00, 1600, 4.30"
+            />
+            <button id="now" class="btn small" type="button" title="Set to now">
+              Now
+            </button>
+          </div>
+        </div>
+        <button id="add" class="btn" type="button">Add timezone</button>
+      </section>
+
+      <section class="rows" id="rows" aria-label="Timezones"></section>
+
+      <datalist id="tzlist">
+        <option value="UTC"></option>
+        <option value="America/Los_Angeles"></option>
+        <option value="America/New_York"></option>
+        <option value="Europe/London"></option>
+        <option value="Europe/Paris"></option>
+        <option value="Europe/Berlin"></option>
+        <option value="Europe/Istanbul"></option>
+        <option value="Asia/Dubai"></option>
+        <option value="Asia/Tehran"></option>
+        <option value="Asia/Kolkata"></option>
+        <option value="Asia/Singapore"></option>
+        <option value="Asia/Tokyo"></option>
+        <option value="Australia/Sydney"></option>
+      </datalist>
+
+      <template id="rowTpl">
+        <div class="row">
+          <div>
+            <label>Timezone</label>
+            <input
+              class="tz"
+              inputmode="latin"
+              spellcheck="false"
+              autocomplete="off"
+              list="tzlist"
+            />
+            <div class="err">Invalid timezone</div>
+          </div>
+          <div>
+            <label>Converted</label>
+            <div class="out">
+              <div class="time">—</div>
+              <div class="meta"></div>
+            </div>
+          </div>
+          <button class="btn rm" type="button" aria-label="Remove">×</button>
+        </div>
+      </template>
+    </main>
+
+    <script>
+      const $ = (s, el = document) => el.querySelector(s);
+      const rowsEl = $("#rows");
+      const rowTpl = $("#rowTpl");
+      const timeEl = $("#t");
+      const timeWrap = $("#timeWrap");
+
+      const pad2 = (n) => String(n).padStart(2, "0");
+
+      function nowText() {
+        const d = new Date();
+        let h = d.getHours();
+        const m = pad2(d.getMinutes());
+        const ap = h >= 12 ? "pm" : "am";
+        h = h % 12;
+        if (h === 0) h = 12;
+        return `${h}:${m}${ap}`;
+      }
+
+      function parseTime(s) {
+        if (!s) return null;
+        let x = String(s).trim().toLowerCase();
+        if (!x) return null;
+
+        const m = x.match(/(am|pm)\s*$/);
+        const ap = m?.[1] ?? "";
+        x = x.replace(/(am|pm)\s*$/g, "").replace(/\s+/g, "");
+        x = x.replace(".", ":");
+
+        let h = NaN;
+        let min = NaN;
+
+        if (x.includes(":")) {
+          const [hs, ms = ""] = x.split(":");
+          h = Number(hs);
+          if (ms.length === 0) min = 0;
+          else if (ms.length === 1) min = Number(ms) * 10;
+          else min = Number(ms.slice(0, 2));
+        } else if (/^\d+$/.test(x)) {
+          if (x.length <= 2) {
+            h = Number(x);
+            min = 0;
+          } else if (x.length === 3) {
+            h = Number(x.slice(0, 1));
+            min = Number(x.slice(1));
+          } else if (x.length === 4) {
+            h = Number(x.slice(0, 2));
+            min = Number(x.slice(2));
+          }
+        }
+
+        if (!Number.isFinite(h) || !Number.isFinite(min)) return null;
+        if (min < 0 || min > 59) return null;
+
+        if (ap) {
+          if (h < 1 || h > 12) return null;
+          if (h === 12) h = 0;
+          if (ap === "pm") h += 12;
+        } else {
+          if (h === 24 && min === 0) h = 0;
+          if (h < 0 || h > 23) return null;
+        }
+
+        return { h, min };
+      }
+
+      function dateFromLocalTime(t) {
+        if (!t) return null;
+        const d = new Date();
+        d.setSeconds(0, 0);
+        d.setHours(t.h, t.min, 0, 0);
+        return d;
+      }
+
+      function isValidTZ(tz) {
+        if (!tz) return false;
+        try {
+          new Intl.DateTimeFormat(undefined, { timeZone: tz }).format(
+            new Date()
+          );
+          return true;
+        } catch {
+          return false;
+        }
+      }
+
+      function partsFor(tz, d) {
+        const fmt = new Intl.DateTimeFormat(undefined, {
+          timeZone: tz,
+          weekday: "short",
+          month: "short",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        });
+        const parts = fmt.formatToParts(d);
+        const get = (type) => parts.find((p) => p.type === type)?.value ?? "";
+        return {
+          weekday: get("weekday"),
+          month: get("month"),
+          day: get("day"),
+          hour: get("hour"),
+          minute: get("minute"),
+        };
+      }
+
+      function update() {
+        const parsed = parseTime(timeEl.value);
+        const base = dateFromLocalTime(parsed);
+        timeWrap.classList.toggle("timeBad", !!timeEl.value && !parsed);
+
+        for (const row of rowsEl.children) {
+          const tzEl = $(".tz", row);
+          const tz = (tzEl.value || "").trim();
+          const ok = isValidTZ(tz);
+          row.classList.toggle("invalid", tz.length > 0 && !ok);
+
+          const timeOut = $(".time", row);
+          const metaOut = $(".meta", row);
+
+          if (!base || !tz) {
+            timeOut.textContent = "—";
+            metaOut.textContent = "";
+            continue;
+          }
+          if (!ok) {
+            timeOut.textContent = "—";
+            metaOut.textContent = "";
+            continue;
+          }
+
+          const p = partsFor(tz, base);
+          const t = `${p.weekday} ${p.hour}:${p.minute}`;
+          timeOut.textContent = t;
+
+          const theirKey = `${p.month}-${p.day}`;
+          let showDate = "";
+          try {
+            const lp = partsFor(
+              Intl.DateTimeFormat().resolvedOptions().timeZone,
+              base
+            );
+            const localMD = `${lp.month}-${lp.day}`;
+            if (localMD !== theirKey) showDate = `${p.month} ${p.day}`;
+          } catch {}
+          metaOut.textContent = showDate;
+        }
+      }
+
+      function addRow(tz = "America/Los_Angeles") {
+        const node = rowTpl.content.firstElementChild.cloneNode(true);
+        const tzEl = $(".tz", node);
+        tzEl.value = tz;
+        tzEl.addEventListener("input", update);
+        tzEl.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") tzEl.blur();
+        });
+        $(".rm", node).addEventListener("click", () => {
+          node.remove();
+          update();
+        });
+        rowsEl.append(node);
+        update();
+      }
+
+      $("#add").addEventListener("click", () => addRow("UTC"));
+      timeEl.addEventListener("input", update);
+      $("#now").addEventListener("click", () => {
+        timeEl.value = nowText();
+        timeEl.focus();
+        update();
+      });
+
+      // Init
+      timeEl.value = nowText();
+      addRow("America/Los_Angeles");
+    </script>
+  </body>
+</html>
