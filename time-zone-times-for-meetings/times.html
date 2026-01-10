@@ -7,6 +7,7 @@
     <style>
       :root {
         color-scheme: light dark;
+        --ctl-h: 42px;
         --bg: #0b0d12;
         --card: rgba(255, 255, 255, 0.06);
         --stroke: rgba(255, 255, 255, 0.1);
@@ -62,7 +63,7 @@
       }
 
       .app {
-        width: min(780px, 100%);
+        width: min(585px, 100%);
         border: 1px solid var(--stroke);
         background: var(--card);
         border-radius: var(--radius);
@@ -117,6 +118,7 @@
       .timeInput,
       .tz {
         width: 100%;
+        min-height: var(--ctl-h);
         border-radius: 12px;
         border: 1px solid var(--stroke);
         background: rgba(0, 0, 0, 0.08);
@@ -140,26 +142,66 @@
       .timeRow {
         display: flex;
         gap: 8px;
-        align-items: center;
+        align-items: flex-end;
+        height: var(--ctl-h);
+        padding: 0 6px;
+        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.06);
       }
       .timeInput {
         flex: 1;
         min-width: 0;
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        outline: none;
+        padding: 0 10px;
+        font-size: 24px;
+        font-weight: 560;
+        letter-spacing: 0.2px;
+        caret-color: color-mix(in oklab, var(--text), transparent 5%);
+        min-height: 0;
+        height: 100%;
+      }
+      .timeInput:focus {
+        border-color: transparent;
+        box-shadow: none;
       }
       .btn.small {
-        padding: 10px 10px;
+        height: var(--ctl-h);
+        padding: 0 12px;
         min-width: 56px;
       }
 
-      .timeBad .timeInput {
-        border-color: color-mix(in oklab, var(--danger), var(--stroke) 55%);
+      @media (prefers-color-scheme: light) {
+        .timeRow {
+          background: rgba(255, 255, 255, 0.75);
+        }
+      }
+
+      .timeBad .timeRow {
+        box-shadow: inset 0 0 0 1px
+          color-mix(in oklab, var(--danger), var(--stroke) 55%);
+      }
+
+      .mini {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 6px;
+        padding-left: 2px;
+        min-height: 16px;
       }
 
       .btn {
         border-radius: 12px;
         border: 1px solid var(--stroke);
         background: rgba(255, 255, 255, 0.06);
-        padding: 10px 12px;
+        padding: 0 12px;
+        min-height: var(--ctl-h);
+        height: var(--ctl-h);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
         user-select: none;
       }
@@ -168,6 +210,26 @@
       }
       .btn:active {
         transform: translateY(1px);
+      }
+
+      .btn.ghost {
+        height: calc(var(--ctl-h) - 6px);
+        min-height: calc(var(--ctl-h) - 6px);
+        padding: 0 10px;
+        border-radius: 999px;
+        background: transparent;
+        color: color-mix(in oklab, var(--muted), var(--text) 10%);
+      }
+      .btn.ghost:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .btn.ghost:active {
+        transform: translateY(1px);
+      }
+
+      .btn.ghost.small {
+        min-width: 52px;
+        padding: 0 10px;
       }
 
       .rows {
@@ -180,7 +242,7 @@
         display: grid;
         grid-template-columns: 1.25fr 1fr auto;
         gap: 10px;
-        align-items: center;
+        align-items: start;
       }
 
       .out {
@@ -210,11 +272,22 @@
       }
 
       .rm {
-        width: 40px;
-        height: 40px;
+        width: var(--ctl-h);
+        height: var(--ctl-h);
         padding: 0;
         display: grid;
         place-items: center;
+        border-radius: 999px;
+        margin-top: 18px; /* align with inputs (labels sit above) */
+        background: rgba(255, 255, 255, 0.04);
+      }
+      .rm svg {
+        width: 16px;
+        height: 16px;
+        opacity: 0.75;
+      }
+      .rm:hover svg {
+        opacity: 0.95;
       }
 
       .err {
@@ -244,7 +317,9 @@
         }
         .rm {
           width: 100%;
-          height: 42px;
+          height: var(--ctl-h);
+          margin-top: 0;
+          border-radius: 12px;
         }
       }
     </style>
@@ -252,47 +327,83 @@
   <body>
     <main class="app">
       <header>
-        <h1>Time Zones</h1>
+        <h1>World Clock</h1>
         <p class="hint">Type a local time, everything updates instantly.</p>
       </header>
 
       <section class="top" aria-label="Input">
         <div id="timeWrap">
-          <label for="t">Local time (today)</label>
+          <label for="t"></label>
           <div class="timeRow">
             <input
               id="t"
               class="timeInput"
               type="text"
+              autofocus
               inputmode="text"
               autocomplete="off"
               spellcheck="false"
               placeholder="4pm, 16:00, 1600, 4.30"
             />
-            <button id="now" class="btn small" type="button" title="Set to now">
+            <button
+              id="now"
+              class="btn ghost small"
+              type="button"
+              title="Set to now"
+            >
               Now
             </button>
           </div>
         </div>
-        <button id="add" class="btn" type="button">Add timezone</button>
+        <button id="add" class="btn ghost" type="button">Add timezone</button>
       </section>
+      <div id="timeHint" class="mini"></div>
 
       <section class="rows" id="rows" aria-label="Timezones"></section>
 
       <datalist id="tzlist">
         <option value="UTC"></option>
+        <option value="America/Anchorage"></option>
         <option value="America/Los_Angeles"></option>
+        <option value="America/Vancouver"></option>
         <option value="America/New_York"></option>
+        <option value="America/Chicago"></option>
+        <option value="America/Denver"></option>
+        <option value="America/Phoenix"></option>
+        <option value="America/Toronto"></option>
+        <option value="America/Mexico_City"></option>
+        <option value="America/Sao_Paulo"></option>
+        <option value="America/Argentina/Buenos_Aires"></option>
         <option value="Europe/London"></option>
+        <option value="Europe/Dublin"></option>
+        <option value="Europe/Lisbon"></option>
         <option value="Europe/Paris"></option>
         <option value="Europe/Berlin"></option>
+        <option value="Europe/Madrid"></option>
+        <option value="Europe/Rome"></option>
+        <option value="Europe/Amsterdam"></option>
+        <option value="Europe/Stockholm"></option>
+        <option value="Europe/Moscow"></option>
         <option value="Europe/Istanbul"></option>
+        <option value="Africa/Cairo"></option>
+        <option value="Africa/Johannesburg"></option>
+        <option value="Africa/Nairobi"></option>
         <option value="Asia/Dubai"></option>
+        <option value="Asia/Riyadh"></option>
         <option value="Asia/Tehran"></option>
+        <option value="Asia/Karachi"></option>
         <option value="Asia/Kolkata"></option>
+        <option value="Asia/Bangkok"></option>
+        <option value="Asia/Jakarta"></option>
         <option value="Asia/Singapore"></option>
+        <option value="Asia/Hong_Kong"></option>
+        <option value="Asia/Shanghai"></option>
+        <option value="Asia/Seoul"></option>
         <option value="Asia/Tokyo"></option>
+        <option value="Australia/Perth"></option>
         <option value="Australia/Sydney"></option>
+        <option value="Australia/Melbourne"></option>
+        <option value="Pacific/Auckland"></option>
       </datalist>
 
       <template id="rowTpl">
@@ -315,7 +426,16 @@
               <div class="meta"></div>
             </div>
           </div>
-          <button class="btn rm" type="button" aria-label="Remove">×</button>
+          <button class="btn rm" type="button" aria-label="Remove">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path
+                d="M5 5L15 15M15 5L5 15"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
         </div>
       </template>
     </main>
@@ -326,8 +446,11 @@
       const rowTpl = $("#rowTpl");
       const timeEl = $("#t");
       const timeWrap = $("#timeWrap");
+      const timeHint = $("#timeHint");
 
       const pad2 = (n) => String(n).padStart(2, "0");
+
+      const localTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
       function nowText() {
         const d = new Date();
@@ -339,7 +462,7 @@
         return `${h}:${m}${ap}`;
       }
 
-      function parseTime(s) {
+      function parseTimeToken(s) {
         if (!s) return null;
         let x = String(s).trim().toLowerCase();
         if (!x) return null;
@@ -386,11 +509,39 @@
         return { h, min };
       }
 
-      function dateFromLocalTime(t) {
+      function partsNum(tz, d) {
+        const parts = new Intl.DateTimeFormat(undefined, {
+          timeZone: tz,
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        }).formatToParts(d);
+        const get = (type) => parts.find((p) => p.type === type)?.value ?? "";
+        return {
+          y: Number(get("year")),
+          mo: Number(get("month")),
+          da: Number(get("day")),
+          h: Number(get("hour")),
+          mi: Number(get("minute")),
+        };
+      }
+
+      function dateFromZonedTime(t, tz) {
         if (!t) return null;
-        const d = new Date();
-        d.setSeconds(0, 0);
-        d.setHours(t.h, t.min, 0, 0);
+        const now = new Date();
+        const { y, mo, da } = tz ? partsNum(tz, now) : partsNum(localTZ, now);
+        let d = new Date(Date.UTC(y, mo - 1, da, t.h, t.min, 0, 0));
+
+        // Converge to the instant that formats to y-mo-da t.h:t.min in tz
+        for (let i = 0; i < 2; i++) {
+          const a = partsNum(tz || localTZ, d);
+          const want = Date.UTC(y, mo - 1, da, t.h, t.min);
+          const got = Date.UTC(a.y, a.mo - 1, a.da, a.h, a.mi);
+          d = new Date(d.getTime() + (want - got));
+        }
         return d;
       }
 
@@ -427,10 +578,120 @@
         };
       }
 
+      const tzAliases = [
+        [/(\blos_angeles\b)/, "America/Los_Angeles"],
+        [/(\bchicago\b)/, "America/Chicago"],
+        [/(\bdenver\b)/, "America/Denver"],
+        [/(\bphoenix\b)/, "America/Phoenix"],
+        [/(\btoronto\b)/, "America/Toronto"],
+        [/(\bmexico_city\b)/, "America/Mexico_City"],
+        [/(\bnew_york\b)/, "America/New_York"],
+        [/(\blondon\b)/, "Europe/London"],
+        [/(\bparis\b)/, "Europe/Paris"],
+        [/(\bberlin\b)/, "Europe/Berlin"],
+        [/(\bmadrid\b)/, "Europe/Madrid"],
+        [/(\brome\b)/, "Europe/Rome"],
+        [/(\btokyo\b)/, "Asia/Tokyo"],
+        [/(\bseoul\b)/, "Asia/Seoul"],
+        [/(\bsingapore\b)/, "Asia/Singapore"],
+        [/(\bdubai\b)/, "Asia/Dubai"],
+        [/(\btehran\b)/, "Asia/Tehran"],
+        [/(\bsydney\b)/, "Australia/Sydney"],
+        [/(\bauckland\b)/, "Pacific/Auckland"],
+        [/(\butc\b|\bgmt\b)/, "UTC"],
+        [
+          /(\bpst\b|\bpdt\b|\bpt\b|\bpacific\b|\bla\b|\blos\s*angeles\b|\bsf\b|\bsan\s*francisco\b)/,
+          "America/Los_Angeles",
+        ],
+        [
+          /(\best\b|\bedt\b|\bet\b|\beastern\b|\bnyc\b|\bnew\s*york\b)/,
+          "America/New_York",
+        ],
+        [/(\bcst\b|\bcdt\b|\bct\b|\bcentral\b|\bchicago\b)/, "America/Chicago"],
+        [/(\bmst\b|\bmdt\b|\bmt\b|\bmountain\b|\bdenver\b)/, "America/Denver"],
+        [/(\bphoenix\b|\barizona\b)/, "America/Phoenix"],
+        [/(\btoronto\b|\bcanada\b)/, "America/Toronto"],
+        [/(\bmexico\s*city\b|\bcdmx\b)/, "America/Mexico_City"],
+        [/(\bparis\b|\bfrance\b)/, "Europe/Paris"],
+        [/(\bberlin\b|\bgermany\b)/, "Europe/Berlin"],
+        [/(\bmadrid\b|\bspain\b)/, "Europe/Madrid"],
+        [/(\brome\b|\bitaly\b)/, "Europe/Rome"],
+        [/(\bdubai\b|\buae\b)/, "Asia/Dubai"],
+        [/(\bsingapore\b)/, "Asia/Singapore"],
+        [/(\bhong\s*kong\b|\bhk\b)/, "Asia/Hong_Kong"],
+        [/(\bshanghai\b|\bchina\b|\bbeijing\b)/, "Asia/Shanghai"],
+        [/(\bseoul\b|\bkorea\b|\bkr\b)/, "Asia/Seoul"],
+        [/(\bjst\b|\btokyo\b)/, "Asia/Tokyo"],
+        [/(\bbst\b|\blondon\b)/, "Europe/London"],
+        [/(\bsydney\b)/, "Australia/Sydney"],
+        [/(\bmelbourne\b)/, "Australia/Melbourne"],
+        [/(\bauckland\b|\bnz\b|\bnew\s*zealand\b)/, "Pacific/Auckland"],
+      ];
+
+      function canonicalTZ(raw) {
+        if (!raw) return "";
+        const x = String(raw).trim();
+        if (!x) return "";
+        if (x.includes("/")) return x;
+        const lc = x.toLowerCase();
+        for (const [re, tz] of tzAliases) if (re.test(lc)) return tz;
+        return "";
+      }
+
+      function extractTZs(text) {
+        const s = String(text || "").toLowerCase();
+        const found = [];
+        const ianas = s.match(/[a-z_]+\/[a-z_]+/g) || [];
+        for (const z of ianas) found.push(z);
+        for (const [, tz] of tzAliases) {
+          // run regexes against the full string, but avoid pushing duplicates
+          // (we don't re-run the regex here; canonicalTZ will map anyway)
+        }
+        for (const [re, tz] of tzAliases) {
+          if (re.test(s)) found.push(tz);
+        }
+        return [...new Set(found.map(canonicalTZ).filter(Boolean))];
+      }
+
+      function extractTimeToken(text) {
+        const s = String(text || "").toLowerCase();
+        const s2 = s.replace(/\./g, ":");
+        const m =
+          s2.match(/\b\d{1,2}(?::\d{1,2})?\s*(?:am|pm)\b/) ||
+          s2.match(/\b\d{1,2}(?::\d{1,2})?(?:am|pm)\b/) ||
+          s2.match(/\b\d{1,2}:\d{1,2}\b/) ||
+          s2.match(/\b\d{3,4}\b/) ||
+          s2.match(/\b\d{1,2}\b/);
+        return m ? m[0].replace(/\s+/g, "") : "";
+      }
+
       function update() {
-        const parsed = parseTime(timeEl.value);
-        const base = dateFromLocalTime(parsed);
-        timeWrap.classList.toggle("timeBad", !!timeEl.value && !parsed);
+        const raw = timeEl.value || "";
+        const timeTok = extractTimeToken(raw);
+        const parsed = parseTimeToken(timeTok);
+        const tzs = extractTZs(raw);
+        const baseTZ = tzs[0] || localTZ;
+        const base = dateFromZonedTime(parsed, baseTZ);
+        timeWrap.classList.toggle("timeBad", !!raw && !parsed);
+        timeHint.textContent =
+          tzs.length > 0 && baseTZ !== localTZ
+            ? `Interpreting “today” in ${baseTZ}`
+            : tzs.length > 0
+            ? `Interpreting in ${baseTZ}`
+            : "";
+
+        // Auto-add mentioned zones (including base) without duplication.
+        if (tzs.length) {
+          const existing = new Set(
+            [...rowsEl.children]
+              .map((r) => ($(".tz", r)?.value || "").trim())
+              .filter(Boolean)
+              .map((z) => canonicalTZ(z) || z)
+          );
+          for (const tz of tzs) {
+            if (!existing.has(tz)) addRow(tz);
+          }
+        }
 
         for (const row of rowsEl.children) {
           const tzEl = $(".tz", row);
@@ -459,10 +720,7 @@
           const theirKey = `${p.month}-${p.day}`;
           let showDate = "";
           try {
-            const lp = partsFor(
-              Intl.DateTimeFormat().resolvedOptions().timeZone,
-              base
-            );
+            const lp = partsFor(baseTZ, base);
             const localMD = `${lp.month}-${lp.day}`;
             if (localMD !== theirKey) showDate = `${p.month} ${p.day}`;
           } catch {}
@@ -497,6 +755,10 @@
       // Init
       timeEl.value = nowText();
       addRow("America/Los_Angeles");
+      requestAnimationFrame(() => {
+        timeEl.focus();
+        timeEl.select?.();
+      });
     </script>
   </body>
 </html>
