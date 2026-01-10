@@ -16,7 +16,7 @@ load_dotenv()
 
 
 class InvoiceReconciliationSystem:
-    def __init__(self, config_file="reconciliation_config.json"):
+    def __init__(self, config_file="financial_data/reconciliation_config.json"):
         """Initialize the reconciliation system with configuration"""
         self.config = self.load_config(config_file)
         self.setup_logging()
@@ -36,11 +36,11 @@ class InvoiceReconciliationSystem:
     def load_config(self, config_file):
         """Load configuration or create default"""
         default_config = {
-            "bank_statements_folder": "bank_statements/",
-            "invoices_csv": "invoices.csv",
-            "invoice_payments_csv": "invoice_payments.csv",
-            "processed_statements_file": "processed_statements.json",
-            "transaction_cache_file": "transaction_cache.json",
+            "bank_statements_folder": "financial_data/",
+            "invoices_csv": "financial_data/invoices.csv",
+            "invoice_payments_csv": "financial_data/invoice_payments.csv",
+            "processed_statements_file": "financial_data/processed_statements.json",
+            "transaction_cache_file": "financial_data/transaction_cache.json",
             "similarity_threshold": 0.6,
             "amount_tolerance": 0.01,
             "openai_model": "gpt-4o",
@@ -61,7 +61,7 @@ class InvoiceReconciliationSystem:
             level=logging.INFO,
             format="%(asctime)s - %(levelname)s - %(message)s",
             handlers=[
-                logging.FileHandler("reconciliation.log"),
+                logging.FileHandler("logs/reconciliation.log"),
                 logging.StreamHandler(),
             ],
         )

@@ -33,7 +33,7 @@ def setup_environment():
         print("✅ OpenAI API key found")
 
     # Create required directories
-    directories = ["bank_statements", "logs"]
+    directories = ["financial_data", "logs"]
 
     for directory in directories:
         Path(directory).mkdir(exist_ok=True)
@@ -41,10 +41,10 @@ def setup_environment():
 
     # Create sample files if they don't exist
     sample_files = {
-        "invoices.csv": """invoice_id,customer_name,invoice_date,invoice_amount,due_date
+        "financial_data/invoices.csv": """invoice_id,customer_name,invoice_date,invoice_amount,due_date
 INV-001,SOLUTIO Ltd,2024-01-01,14616.75,2024-01-31
 INV-002,B.C. UN Corp,2024-01-10,79100.00,2024-02-10""",
-        "invoice_payments.csv": """invoice_id,payment_date,amount,payer_name,bank_reference,reconciled_date""",
+        "financial_data/invoice_payments.csv": """invoice_id,payment_date,amount,payer_name,bank_reference,reconciled_date""",
     }
 
     for filename, content in sample_files.items():
@@ -59,8 +59,8 @@ INV-002,B.C. UN Corp,2024-01-10,79100.00,2024-02-10""",
     print("\n" + "=" * 50)
     print("Setup completed successfully!")
     print("\nNext steps:")
-    print("1. Place your bank statement PDFs in the bank_statements/ folder")
-    print("2. Update invoices.csv with your actual invoice data")
+    print("1. Place your bank statement PDFs in the financial_data/ folder")
+    print("2. Update financial_data/invoices.csv with your actual invoice data")
     print("3. Run: python reconcile.py")
     print("\nThe system will process PDFs using OpenAI's vision API to extract")
     print("transaction data and help you reconcile them with your invoices.")
