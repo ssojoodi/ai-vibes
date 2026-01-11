@@ -48,6 +48,9 @@ ENV/
 env.bak/
 venv.bak/
 
+# Flask's default application data folder
+instance/
+
 # Cython debug symbols
 cython_debug/
 
