@@ -28,7 +28,15 @@ from werkzeug.utils import secure_filename
 # Initialize Flask app
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "your-secret-key-change-this-in-production"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///insurance_claims.db"
+
+# Create data directory if it doesn't exist and set absolute path
+basedir = os.path.abspath(os.path.dirname(__file__))
+datadir = os.path.join(basedir, "data")
+os.makedirs(datadir, exist_ok=True)
+
+app.config["SQLALCHEMY_DATABASE_URI"] = (
+    f"sqlite:///{os.path.join(datadir, 'insurance_claims.db')}"
+)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max-file-size
 
