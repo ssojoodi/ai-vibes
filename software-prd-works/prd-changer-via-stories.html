@@ -23,7 +23,8 @@ The user can add a new user story to the TODO list.
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRD Changer via Stories</title>
+    <title>PRD Extractor - Extract PRD Deltas from User Input</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%233b82f6;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%2316a34a;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23grad)'/%3E%3Cpath d='M25 30 L25 70 L45 70 L45 55 L60 55 L60 30 Z' fill='white' opacity='0.9'/%3E%3Cpath d='M45 55 L60 40 L60 55 Z' fill='white' opacity='0.9'/%3E%3Cpath d='M30 40 L40 40 M30 50 L50 50' stroke='%233b82f6' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M65 45 L75 35 L85 45 M75 35 L75 65' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
     <style>
         :root {
             --bg: linear-gradient(135deg, #dff3ff 0%, #f2f1ff 55%, #e9fff3 100%);
@@ -130,6 +131,91 @@ The user can add a new user story to the TODO list.
             display: flex;
             gap: 0.5rem;
             align-items: center;
+            position: relative;
+        }
+
+        .hamburger-menu {
+            position: relative;
+        }
+
+        .hamburger-btn {
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 0.5rem 0.85rem;
+            border-radius: 999px;
+            cursor: pointer;
+            font-weight: 650;
+            font-size: 0.88rem;
+            transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s, background-color 0.15s, opacity 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .hamburger-btn:hover {
+            background: white;
+            border-color: var(--border-strong);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .hamburger-icon {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            width: 16px;
+            height: 12px;
+        }
+
+        .hamburger-icon span {
+            display: block;
+            height: 2px;
+            width: 100%;
+            background: var(--text);
+            border-radius: 2px;
+            transition: all 0.2s;
+        }
+
+        .menu-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            min-width: 180px;
+            z-index: 1000;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+        }
+
+        .menu-dropdown.active {
+            display: block;
+        }
+
+        .menu-item {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            cursor: pointer;
+            font-weight: 650;
+            font-size: 0.88rem;
+            transition: background-color 0.15s;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-item:hover {
+            background: rgba(15, 23, 42, 0.04);
         }
 
         .analyze-btn {
@@ -419,31 +505,6 @@ The user can add a new user story to the TODO list.
             display: flex;
             flex-direction: column;
             overflow: hidden;
-        }
-
-        .todo-input-container {
-            padding: 16px;
-            border-bottom: 1px solid var(--border);
-            background: transparent;
-        }
-
-        .todo-input {
-            width: 100%;
-            padding: 12px 14px;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.92);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            font-size: 13px;
-            resize: vertical;
-            min-height: 60px;
-            outline: none;
-            box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
-        }
-
-        .todo-input:focus {
-            border-color: rgba(59, 130, 246, 0.45);
-            box-shadow: var(--focus);
         }
 
         .add-todo-btn {
@@ -943,7 +1004,8 @@ The user can add a new user story to the TODO list.
 
 <body>
     <div class="header">
-        <h1>PRD Changer via Stories</h1>
+        <h2>Extractor</h2>
+        <h4>Extract PRD deltas from User input</h4>
     </div>
 
     <div class="main-container">
@@ -951,22 +1013,30 @@ The user can add a new user story to the TODO list.
             <div class="pane-header">
                 <span>User Stories</span>
                 <div class="header-controls">
-                    <button class="secondary-btn" onclick="manageApiKey()">🔑 API Key</button>
-                    <button class="secondary-btn" onclick="manageTrello()">🗂️ Trello Key</button>
-                    <button id="trelloSyncBtn" class="secondary-btn" onclick="syncFromTrello()">🔄 Sync</button>
+                    <div class="hamburger-menu">
+                        <button class="hamburger-btn" onclick="toggleMenu()" aria-label="Settings menu">
+                            <div class="hamburger-icon">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                            <span>Settings</span>
+                        </button>
+                        <div id="settingsMenu" class="menu-dropdown">
+                            <button class="menu-item" onclick="manageApiKey(); closeMenu();">API Key</button>
+                            <button class="menu-item" onclick="manageTrello(); closeMenu();">Trello Key</button>
+                        </div>
+                    </div>
+                    <button id="trelloSyncBtn" class="secondary-btn" onclick="syncFromTrello()">Sync</button>
                 </div>
             </div>
             <div class="pane-content">
                 <div class="todo-list">
-                    <div class="todo-input-container">
-                        <textarea id="newStoryInput" class="todo-input"
-                            placeholder="Enter a new user story here... (e.g., 'As a user, I want to be able to reset my password so that I can regain access to my account')"></textarea>
-                        <button class="add-todo-btn" onclick="addUserStory()">Add User Story</button>
-                    </div>
                     <div class="todo-items" id="todoItems">
                         <div class="empty-state">
                             <h3>No User Stories Yet</h3>
-                            <p>Add user stories above, then click "Intake" on each story to augment the PRD.</p>
+                            <p>Click "Add User Story" below to add stories, then click "Intake" on each story to augment
+                                the PRD.</p>
                         </div>
                     </div>
                 </div>
@@ -975,9 +1045,9 @@ The user can add a new user story to the TODO list.
 
         <div class="pane right-pane">
             <div class="pane-header">
-                <span>PRD (Product Requirements Document)</span>
+                <span>PRD (In 8090 Refinery)</span>
                 <div class="header-controls">
-                    <button class="secondary-btn" onclick="pasteExample()">📋 Example</button>
+                    <button class="secondary-btn" onclick="pasteExample()">Example</button>
                 </div>
             </div>
             <div class="pane-content">
@@ -1226,13 +1296,33 @@ The PRD will be automatically augmented when you click 'Intake' on user stories 
             localStorage.setItem('userStories', JSON.stringify(userStories));
         }
 
-        // Add a new user story
-        function addUserStory() {
-            const input = document.getElementById('newStoryInput');
-            const storyText = input.value.trim();
+        // Show modal to add a new user story
+        async function showAddUserStoryModal() {
+            const values = await showFormModal({
+                title: 'Add User Story',
+                descriptionHtml: 'Enter a new user story (e.g., "As a user, I want to be able to reset my password so that I can regain access to my account")',
+                fields: [
+                    {
+                        id: 'newStoryInput',
+                        name: 'storyText',
+                        label: 'User Story',
+                        value: '',
+                        placeholder: 'Enter a new user story here...',
+                        type: 'textarea'
+                    }
+                ],
+                primaryText: 'Add Story',
+                secondaryText: 'Cancel'
+            });
+
+            if (!values || !values.storyText) {
+                return;
+            }
+
+            const storyText = values.storyText.trim();
 
             if (!storyText) {
-                showInfoModal({ title: 'Missing user story', message: 'Please enter a user story.' });
+                await showInfoModal({ title: 'Missing user story', message: 'Please enter a user story.' });
                 return;
             }
 
@@ -1244,9 +1334,13 @@ The PRD will be automatically augmented when you click 'Intake' on user stories 
             };
 
             userStories.push(story);
-            input.value = '';
             saveStories();
             renderStories();
+        }
+
+        // Add a new user story (kept for backward compatibility, but now calls modal)
+        function addUserStory() {
+            showAddUserStoryModal();
         }
 
         // Remove a user story
@@ -1392,7 +1486,10 @@ The PRD will be automatically augmented when you click 'Intake' on user stories 
                 container.innerHTML = `
                     <div class="empty-state">
                         <h3>No User Stories Yet</h3>
-                        <p>Add user stories above, then click "Intake" on each story to augment the PRD.</p>
+                        <p>Click "Add User Story" below to add stories, then click "Intake" on each story to augment the PRD.</p>
+                    </div>
+                    <div style="padding: 16px; border-top: 1px solid var(--border);">
+                        <button class="add-todo-btn" onclick="showAddUserStoryModal()" style="width: 100%;">Add User Story</button>
                     </div>
                 `;
                 return;
@@ -1412,7 +1509,11 @@ The PRD will be automatically augmented when you click 'Intake' on user stories 
                         </div>
                     </div>
                 `;
-            }).join('');
+            }).join('') + `
+                <div style="padding: 16px; border-top: 1px solid var(--border);">
+                    <button class="add-todo-btn" onclick="showAddUserStoryModal()" style="width: 100%;">Add User Story</button>
+                </div>
+            `;
         }
 
         function escapeHtml(text) {
@@ -1716,13 +1817,13 @@ The PRD will be automatically augmented when you click 'Intake' on user stories 
             } finally {
                 if (syncBtn) {
                     syncBtn.disabled = false;
-                    syncBtn.textContent = prevBtnText || '🔄 Sync';
+                    syncBtn.textContent = prevBtnText || 'Sync';
                 }
             }
         }
 
-        function pasteExample() {
-            const examplePRD = `# Timesheet & Labor-Costing System for Multi-Crew Construction Firms
+        function getExamplePRD() {
+            return `# Timesheet & Labor-Costing System for Multi-Crew Construction Firms
 
 ## Context
 
@@ -1804,6 +1905,10 @@ Create a lightweight timesheet platform that:
   - timesheet_versions
 
 `;
+        }
+
+        function pasteExample() {
+            const examplePRD = getExamplePRD();
             document.getElementById('prdContent').value = examplePRD;
             document.getElementById('prdContent').focus();
         }
@@ -2140,16 +2245,41 @@ Create a lightweight timesheet platform that:
             }
         });
 
-        // Allow Enter key to add story (Shift+Enter for new line)
-        document.getElementById('newStoryInput').addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                addUserStory();
+
+        // Hamburger menu functions
+        function toggleMenu() {
+            const menu = document.getElementById('settingsMenu');
+            if (menu) {
+                menu.classList.toggle('active');
+            }
+        }
+
+        function closeMenu() {
+            const menu = document.getElementById('settingsMenu');
+            if (menu) {
+                menu.classList.remove('active');
+            }
+        }
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function (e) {
+            const menu = document.getElementById('settingsMenu');
+            const hamburger = document.querySelector('.hamburger-menu');
+            if (menu && hamburger && !hamburger.contains(e.target)) {
+                menu.classList.remove('active');
             }
         });
 
         // Load stories on page load
         loadStories();
+
+        // Prefill PRD with example text on page load
+        (function() {
+            const prdContent = document.getElementById('prdContent');
+            if (prdContent && !prdContent.value.trim()) {
+                prdContent.value = getExamplePRD();
+            }
+        })();
     </script>
 </body>
 
