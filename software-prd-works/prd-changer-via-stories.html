@@ -847,6 +847,11 @@ The user can add a new user story to the TODO list.
             overflow: auto;
             max-height: 45vh;
         }
+
+        /* Diff view toggle buttons */
+        .secondary-btn.active {
+            background-color: #3498db;
+        }
     </style>
     <!-- Robust diffing (jsdiff). Note: often referred to as “jsdiff”; user called it “jdiff”. -->
     <script src="https://cdn.jsdelivr.net/npm/diff@5.2.0/dist/diff.min.js"></script>
@@ -905,15 +910,22 @@ The PRD will be automatically augmented when you click 'Intake' on user stories 
         <div class="preview-container">
             <div class="preview-header">
                 <h2>Preview Changes</h2>
+                <div class="header-controls">
+                    <button id="diffViewSideBtn" class="secondary-btn"
+                        onclick="setDiffViewMode('side')">Side-by-side</button>
+                    <button id="diffViewInlineBtn" class="secondary-btn"
+                        onclick="setDiffViewMode('inline')">Inline</button>
+                </div>
                 <button class="close-preview-btn" onclick="closePreview()">×</button>
             </div>
             <div class="preview-content">
-                <div class="preview-pane">
-                    <div class="preview-pane-header">Current PRD</div>
+                <div class="preview-pane" id="previewPaneOriginal">
+                    <div class="preview-pane-header" id="previewOriginalHeader">Current PRD</div>
                     <div id="previewOriginal" class="preview-pane-content"></div>
                 </div>
-                <div class="preview-pane">
-                    <div class="preview-pane-header">Proposed PRD (with changes highlighted)</div>
+                <div class="preview-pane" id="previewPaneProposed">
+                    <div class="preview-pane-header" id="previewProposedHeader">Proposed PRD (with changes highlighted)
+                    </div>
                     <div id="previewProposed" class="preview-pane-content"></div>
                 </div>
             </div>
@@ -1047,7 +1059,7 @@ The PRD will be automatically augmented when you click 'Intake' on user stories 
                     ? `<textarea id="${f.id}" placeholder="${__appModalEscapeHtml(f.placeholder || '')}">${__appModalEscapeHtml(f.value || '')}</textarea>`
                     : `<input id="${f.id}" type="${__appModalEscapeHtml(f.type || 'text')}" value="${__appModalEscapeHtml(f.value || '')}" placeholder="${__appModalEscapeHtml(f.placeholder || '')}">`
                 }
-                        </div>
+                    </div>
                     `).join('')}
                 </form>
             `;
@@ -1717,36 +1729,14 @@ Create a lightweight timesheet platform that:
         // Show preview modal with diff
         function showPreview(originalPRD, proposedPRD, storyText) {
             const modal = document.getElementById('previewModal');
-            const originalDiv = document.getElementById('previewOriginal');
-            const proposedDiv = document.getElementById('previewProposed');
             const storyInfo = document.getElementById('previewStoryInfo');
 
             // Set story info
             storyInfo.textContent = `User Story: ${storyText}`;
 
-            // Prefer robust word-level diff that ignores whitespace + newline-only changes.
-            // Fallback to the legacy line-based diff if the library isn't available.
-            if (window.Diff && typeof window.Diff.diffWords === 'function') {
-                // Left: original PRD as-is
-                originalDiv.textContent = originalPRD;
-                // Right: semantic diff (added/removed tokens highlighted)
-                proposedDiv.innerHTML = renderWordDiffHtml(originalPRD, proposedPRD);
-            } else {
-                // Legacy fallback
-                const diff = computeDiff(originalPRD.split('\n'), proposedPRD.split('\n'));
-
-                originalDiv.innerHTML = diff.map((line) => {
-                    const lineClass = line.type === 'removed' ? 'removed' : line.type === 'modified' ? 'removed' : 'unchanged';
-                    const lineNum = line.origLineNum ? line.origLineNum : '';
-                    return `<div class="diff-line ${lineClass}"><span class="diff-line-number">${lineNum}</span>${escapeHtml(line.original || '')}</div>`;
-                }).join('');
-
-                proposedDiv.innerHTML = diff.map((line) => {
-                    const lineClass = line.type === 'added' ? 'added' : line.type === 'modified' ? 'added' : 'unchanged';
-                    const lineNum = line.propLineNum ? line.propLineNum : '';
-                    return `<div class="diff-line ${lineClass}"><span class="diff-line-number">${lineNum}</span>${escapeHtml(line.proposed || '')}</div>`;
-                }).join('');
-            }
+            __lastPreviewPayload = { originalPRD, proposedPRD, storyText };
+            // Render based on current view mode
+            renderPreviewDiff();
 
             // Show modal
             modal.classList.add('active');
@@ -1762,6 +1752,142 @@ Create a lightweight timesheet platform that:
                 if (part.removed) return `<span class="diff-token removed">${safe}</span>`;
                 return safe;
             }).join('');
+        }
+
+        let __isPreviewScrollSyncing = false;
+        let __diffViewMode = localStorage.getItem('diff_view_mode') || 'side';
+        let __lastPreviewPayload = null;
+
+        function setDiffViewMode(mode) {
+            __diffViewMode = mode === 'inline' ? 'inline' : 'side';
+            localStorage.setItem('diff_view_mode', __diffViewMode);
+            updateDiffViewButtons();
+            renderPreviewDiff();
+        }
+
+        function updateDiffViewButtons() {
+            const sideBtn = document.getElementById('diffViewSideBtn');
+            const inlineBtn = document.getElementById('diffViewInlineBtn');
+            if (!sideBtn || !inlineBtn) return;
+            sideBtn.classList.toggle('active', __diffViewMode === 'side');
+            inlineBtn.classList.toggle('active', __diffViewMode === 'inline');
+        }
+
+        function unlinkPreviewScroll() {
+            const left = document.getElementById('previewOriginal');
+            const right = document.getElementById('previewProposed');
+            if (left?.__linkedScrollHandler) left.removeEventListener('scroll', left.__linkedScrollHandler);
+            if (right?.__linkedScrollHandler) right.removeEventListener('scroll', right.__linkedScrollHandler);
+            if (left) left.__linkedScrollHandler = null;
+            if (right) right.__linkedScrollHandler = null;
+        }
+
+        function renderPreviewDiff() {
+            if (!__lastPreviewPayload) return;
+
+            updateDiffViewButtons();
+
+            const { originalPRD, proposedPRD } = __lastPreviewPayload;
+            const originalPane = document.getElementById('previewPaneOriginal');
+            const proposedPane = document.getElementById('previewPaneProposed');
+            const originalHeader = document.getElementById('previewOriginalHeader');
+            const proposedHeader = document.getElementById('previewProposedHeader');
+            const originalDiv = document.getElementById('previewOriginal');
+            const proposedDiv = document.getElementById('previewProposed');
+
+            if (!originalPane || !proposedPane || !originalDiv || !proposedDiv) return;
+
+            if (__diffViewMode === 'inline') {
+                // Inline: show one pane with a continuous diff
+                originalPane.style.display = 'none';
+                proposedPane.style.flex = '1';
+                if (proposedHeader) proposedHeader.textContent = 'Inline diff (Current → Proposed)';
+                if (originalHeader) originalHeader.textContent = 'Current PRD';
+
+                unlinkPreviewScroll();
+                originalDiv.textContent = '';
+
+                if (window.Diff && typeof window.Diff.diffWords === 'function') {
+                    proposedDiv.innerHTML = renderWordDiffHtml(originalPRD, proposedPRD);
+                } else {
+                    const diff = computeDiff(originalPRD.split('\n'), proposedPRD.split('\n'));
+                    proposedDiv.innerHTML = diff.map((line) => {
+                        if (line.type === 'added') return `<div class="diff-line added">${escapeHtml(line.proposed || '')}</div>`;
+                        if (line.type === 'removed') return `<div class="diff-line removed">${escapeHtml(line.original || '')}</div>`;
+                        if (line.type === 'modified') {
+                            return `<div class="diff-line removed">${escapeHtml(line.original || '')}</div><div class="diff-line added">${escapeHtml(line.proposed || '')}</div>`;
+                        }
+                        return `<div class="diff-line unchanged">${escapeHtml(line.proposed || '')}</div>`;
+                    }).join('');
+                }
+            } else {
+                // Side-by-side (current behavior)
+                originalPane.style.display = 'flex';
+                proposedPane.style.flex = '1';
+                if (originalHeader) originalHeader.textContent = 'Current PRD';
+                if (proposedHeader) proposedHeader.textContent = 'Proposed PRD (with changes highlighted)';
+
+                // Prefer robust word-level diff that ignores whitespace + newline-only changes.
+                // Fallback to the legacy line-based diff if the library isn't available.
+                if (window.Diff && typeof window.Diff.diffWords === 'function') {
+                    originalDiv.textContent = originalPRD;
+                    proposedDiv.innerHTML = renderWordDiffHtml(originalPRD, proposedPRD);
+                } else {
+                    const diff = computeDiff(originalPRD.split('\n'), proposedPRD.split('\n'));
+
+                    originalDiv.innerHTML = diff.map((line) => {
+                        const lineClass = line.type === 'removed' ? 'removed' : line.type === 'modified' ? 'removed' : 'unchanged';
+                        const lineNum = line.origLineNum ? line.origLineNum : '';
+                        return `<div class="diff-line ${lineClass}"><span class="diff-line-number">${lineNum}</span>${escapeHtml(line.original || '')}</div>`;
+                    }).join('');
+
+                    proposedDiv.innerHTML = diff.map((line) => {
+                        const lineClass = line.type === 'added' ? 'added' : line.type === 'modified' ? 'added' : 'unchanged';
+                        const lineNum = line.propLineNum ? line.propLineNum : '';
+                        return `<div class="diff-line ${lineClass}"><span class="diff-line-number">${lineNum}</span>${escapeHtml(line.proposed || '')}</div>`;
+                    }).join('');
+                }
+
+                linkPreviewScroll();
+            }
+        }
+
+        function linkPreviewScroll() {
+            const left = document.getElementById('previewOriginal');
+            const right = document.getElementById('previewProposed');
+            if (!left || !right) return;
+
+            // Detach old handlers if present (avoid stacking listeners)
+            if (left.__linkedScrollHandler) left.removeEventListener('scroll', left.__linkedScrollHandler);
+            if (right.__linkedScrollHandler) right.removeEventListener('scroll', right.__linkedScrollHandler);
+
+            const syncScroll = (fromEl, toEl) => {
+                const fromMax = Math.max(1, fromEl.scrollHeight - fromEl.clientHeight);
+                const toMax = Math.max(1, toEl.scrollHeight - toEl.clientHeight);
+                const ratio = fromEl.scrollTop / fromMax;
+                toEl.scrollTop = ratio * toMax;
+            };
+
+            left.__linkedScrollHandler = () => {
+                if (__isPreviewScrollSyncing) return;
+                __isPreviewScrollSyncing = true;
+                requestAnimationFrame(() => {
+                    syncScroll(left, right);
+                    __isPreviewScrollSyncing = false;
+                });
+            };
+
+            right.__linkedScrollHandler = () => {
+                if (__isPreviewScrollSyncing) return;
+                __isPreviewScrollSyncing = true;
+                requestAnimationFrame(() => {
+                    syncScroll(right, left);
+                    __isPreviewScrollSyncing = false;
+                });
+            };
+
+            left.addEventListener('scroll', left.__linkedScrollHandler, { passive: true });
+            right.addEventListener('scroll', right.__linkedScrollHandler, { passive: true });
         }
 
         // Compute diff between two text arrays
@@ -1911,6 +2037,8 @@ Create a lightweight timesheet platform that:
             const modal = document.getElementById('previewModal');
             modal.classList.remove('active');
             currentPreviewData = null;
+            __lastPreviewPayload = null;
+            unlinkPreviewScroll();
         }
 
         // Close preview on escape key
