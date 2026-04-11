@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project & Resource Tracker</title>
+    <link href="https://unpkg.com/jsgantt-improved@2.8.10/dist/jsgantt.css" rel="stylesheet" type="text/css" />
+    <script src="https://unpkg.com/jsgantt-improved@2.8.10/dist/jsgantt.js" type="text/javascript"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-card h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-value {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .utilization-high {
+            color: #e74c3c;
+        }
+
+        .utilization-medium {
+            color: #f39c12;
+        }
+
+        .utilization-low {
+            color: #27ae60;
+        }
+
+        .gantt-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .resource-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .resource-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .resource-item {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f8f9fa;
+        }
+
+        .resource-item input {
+            border: none;
+            background: transparent;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .resource-item input:focus {
+            outline: 1px solid #3498db;
+            background: white;
+            padding: 2px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .input-group label {
+            min-width: 100px;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            flex: 1;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .phase-colors {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .phase-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 1px #ddd;
+        }
+
+        .discovery {
+            background: #3498db;
+        }
+
+        .build {
+            background: #e74c3c;
+        }
+
+        .uat {
+            background: #f39c12;
+        }
+
+        .warranty {
+            background: #27ae60;
+        }
+
+        .milestone {
+            background: #9b59b6;
+        }
+
+        .resource-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .resource-row {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .resource-name {
+            width: 150px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .resource-weeks {
+            display: flex;
+            flex: 1;
+            gap: 2px;
+        }
+
+        .week-bar {
+            flex: 1;
+            height: 24px;
+            border-radius: 2px;
+            position: relative;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            min-width: 40px;
+        }
+
+        .week-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+        }
+
+        .week-header {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 2px solid #dee2e6;
+            margin-bottom: 10px;
+        }
+
+        .week-header-name {
+            width: 150px;
+            font-weight: bold;
+        }
+
+        .week-header-weeks {
+            display: flex;
+            flex: 1;
+            gap: 2px;
+        }
+
+        .week-header-cell {
+            flex: 1;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            color: #666;
+            min-width: 40px;
+        }
+
+        .allocation-low {
+            background: #27ae60;
+        }
+
+        .allocation-medium {
+            background: #f39c12;
+        }
+
+        .allocation-high {
+            background: #e74c3c;
+        }
+
+        .allocation-over {
+            background: #8e44ad;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Project & Resource Tracker</h1>
+            <div class="toolbar">
+                <button class="btn btn-primary" onclick="addProject()">Add Project</button>
+                <button class="btn btn-secondary" onclick="addTask()">Add Task</button>
+                <button class="btn btn-secondary" onclick="addResource()">Add Resource</button>
+                <button class="btn btn-success" onclick="exportData()">Export JSON</button>
+                <button class="btn btn-secondary" onclick="importData()">Import JSON</button>
+                <input type="file" id="fileInput" accept=".json" style="display: none" onchange="loadFile(event)">
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <div class="dashboard-card">
+                <h3>Team Utilization</h3>
+                <div id="utilizationMetrics"></div>
+            </div>
+            <div class="dashboard-card">
+                <h3>Project Overview</h3>
+                <div id="projectMetrics"></div>
+            </div>
+            <div class="dashboard-card">
+                <h3>Upcoming Milestones</h3>
+                <div id="milestoneMetrics"></div>
+            </div>
+        </div>
+
+        <div class="gantt-container">
+            <div id="GanttChartDIV" style="position:relative; height:400px;"></div>
+        </div>
+
+        <div class="resource-panel">
+            <h3>Resource Allocation (Weekly)</h3>
+            <div id="resourceAllocationChart"
+                style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px;">
+            </div>
+        </div>
+
+        <div class="resource-panel">
+            <h3>Resources</h3>
+            <div class="resource-list" id="resourceList"></div>
+        </div>
+    </div>
+
+    <!-- Modal for adding/editing tasks -->
+    <div id="taskModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add/Edit Task</h3>
+                <button class="close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="taskForm">
+                <div class="form-group">
+                    <label>Task Name</label>
+                    <input type="text" id="taskName" required>
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="taskType">
+                        <option value="task">Task</option>
+                        <option value="group">Project/Phase</option>
+                        <option value="milestone">Milestone</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <input type="date" id="taskStart" required>
+                </div>
+                <div class="form-group">
+                    <label>End Date</label>
+                    <input type="date" id="taskEnd" required>
+                </div>
+                <div class="form-group">
+                    <label>Planned Hours</label>
+                    <input type="number" id="taskHours" min="0" step="0.5">
+                </div>
+                <div class="form-group">
+                    <label>Assigned Resources</label>
+                    <select id="taskResources" multiple>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Parent Task</label>
+                    <select id="taskParent">
+                        <option value="0">None</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Phase</label>
+                    <select id="taskPhase">
+                        <option value="discovery">Discovery</option>
+                        <option value="build">Build</option>
+                        <option value="uat">UAT</option>
+                        <option value="warranty">Warranty</option>
+                    </select>
+                </div>
+                <div class="toolbar">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Data Models
+        let resources = [
+            { id: 1, name: 'Alice Johnson', role: 'Technical Lead', weeklyCapacityHours: 40 },
+            { id: 2, name: 'Bob Smith', role: 'Full Stack Developer', weeklyCapacityHours: 40 },
+            { id: 3, name: 'Carol Davis', role: 'UI/UX Designer', weeklyCapacityHours: 36 },
+            { id: 4, name: 'David Wilson', role: 'Project Manager', weeklyCapacityHours: 40 },
+            { id: 5, name: 'Eve Brown', role: 'Backend Developer', weeklyCapacityHours: 40 },
+            { id: 6, name: 'Frank Miller', role: 'QA Engineer', weeklyCapacityHours: 40 }
+        ];
+
+        let tasks = [
+            // E-commerce Platform Project
+            { id: 1, name: 'E-commerce Platform Revamp', start: '2024-03-01', end: '2024-06-30', type: 'group', resourceIds: [], plannedHours: 0, status: 'active', parent: 0, phase: 'discovery' },
+
+            // Discovery Phase
+            { id: 2, name: 'Discovery Phase', start: '2024-03-01', end: '2024-03-15', type: 'group', resourceIds: [], plannedHours: 0, status: 'active', parent: 1, phase: 'discovery' },
+            { id: 3, name: 'Requirements Gathering', start: '2024-03-01', end: '2024-03-08', type: 'task', resourceIds: [1, 4], plannedHours: 60, status: 'active', parent: 2, phase: 'discovery' },
+            { id: 4, name: 'Technical Assessment', start: '2024-03-08', end: '2024-03-15', type: 'task', resourceIds: [1, 5], plannedHours: 40, status: 'active', parent: 2, phase: 'discovery' },
+            { id: 5, name: 'Discovery Sign-off', start: '2024-03-15', end: '2024-03-15', type: 'milestone', resourceIds: [4], plannedHours: 0, status: 'planned', parent: 2, phase: 'discovery' },
+
+            // Build Phase
+            { id: 6, name: 'Build Phase', start: '2024-03-18', end: '2024-05-30', type: 'group', resourceIds: [], plannedHours: 0, status: 'planned', parent: 1, phase: 'build' },
+            { id: 7, name: 'Frontend Development', start: '2024-03-18', end: '2024-05-15', type: 'task', resourceIds: [2, 3], plannedHours: 320, status: 'planned', parent: 6, phase: 'build' },
+            { id: 8, name: 'Backend Development', start: '2024-03-18', end: '2024-05-15', type: 'task', resourceIds: [1, 5], plannedHours: 400, status: 'planned', parent: 6, phase: 'build' },
+            { id: 9, name: 'MVP Release', start: '2024-05-15', end: '2024-05-15', type: 'milestone', resourceIds: [4], plannedHours: 0, status: 'planned', parent: 6, phase: 'build' },
+
+            // UAT Phase
+            { id: 10, name: 'UAT Phase', start: '2024-05-16', end: '2024-06-15', type: 'group', resourceIds: [], plannedHours: 0, status: 'planned', parent: 1, phase: 'uat' },
+            { id: 11, name: 'User Testing', start: '2024-05-16', end: '2024-06-10', type: 'task', resourceIds: [3, 6], plannedHours: 160, status: 'planned', parent: 10, phase: 'uat' },
+            { id: 12, name: 'Bug Fixes', start: '2024-05-20', end: '2024-06-15', type: 'task', resourceIds: [2, 5], plannedHours: 120, status: 'planned', parent: 10, phase: 'uat' },
+
+            // Mobile App Project
+            { id: 13, name: 'Mobile App Development', start: '2024-03-15', end: '2024-07-30', type: 'group', resourceIds: [], plannedHours: 0, status: 'active', parent: 0, phase: 'discovery' },
+
+            // Mobile App Discovery
+            { id: 14, name: 'App Discovery Phase', start: '2024-03-15', end: '2024-03-30', type: 'group', resourceIds: [], plannedHours: 0, status: 'active', parent: 13, phase: 'discovery' },
+            { id: 15, name: 'User Research', start: '2024-03-15', end: '2024-03-25', type: 'task', resourceIds: [3, 4], plannedHours: 80, status: 'active', parent: 14, phase: 'discovery' },
+            { id: 16, name: 'Technical Planning', start: '2024-03-25', end: '2024-03-30', type: 'task', resourceIds: [1, 2], plannedHours: 40, status: 'planned', parent: 14, phase: 'discovery' }
+        ];
+
+        let gantt;
+        let nextTaskId = 17;
+        let nextResourceId = 7;
+
+        // Utility Functions
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toISOString().split('T')[0];
+        }
+
+        function addDays(dateStr, days) {
+            const date = new Date(dateStr);
+            date.setDate(date.getDate() + days);
+            return formatDate(date);
+        }
+
+        function getWorkingDaysBetween(startDate, endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            let workingDays = 0;
+
+            for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+                const dayOfWeek = date.getDay();
+                if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Not Sunday or Saturday
+                    workingDays++;
+                }
+            }
+            return workingDays;
+        }
+
+        function calculateDailyBurn(plannedHours, startDate, endDate) {
+            const workingDays = getWorkingDaysBetween(startDate, endDate);
+            return workingDays > 0 ? plannedHours / workingDays : 0;
+        }
+
+        function getPhaseColor(phase) {
+            const colors = {
+                discovery: '#3498db',
+                build: '#e74c3c',
+                uat: '#f39c12',
+                warranty: '#27ae60',
+                milestone: '#9b59b6'
+            };
+            return colors[phase] || '#95a5a6';
+        }
+
+        // Resource Management
+        function renderResources() {
+            const resourceList = document.getElementById('resourceList');
+            resourceList.innerHTML = resources.map(resource => `
+                <div class="resource-item">
+                    <input type="text" value="${resource.name}" onchange="updateResource(${resource.id}, 'name', this.value)">
+                    <div class="input-group">
+                        <label>Role:</label>
+                        <input type="text" value="${resource.role}" onchange="updateResource(${resource.id}, 'role', this.value)">
+                    </div>
+                    <div class="input-group">
+                        <label>Weekly Hours:</label>
+                        <input type="number" value="${resource.weeklyCapacityHours}" min="1" max="60" onchange="updateResource(${resource.id}, 'weeklyCapacityHours', parseInt(this.value))">
+                    </div>
+                    <button class="btn btn-secondary" onclick="removeResource(${resource.id})">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        function updateResource(id, field, value) {
+            const resource = resources.find(r => r.id === id);
+            if (resource) {
+                resource[field] = value;
+                saveData();
+                updateDashboard();
+            }
+        }
+
+        function addResource() {
+            const name = prompt('Resource name:');
+            if (name) {
+                resources.push({
+                    id: nextResourceId++,
+                    name: name,
+                    role: 'Developer',
+                    weeklyCapacityHours: 40
+                });
+                renderResources();
+                updateTaskForm();
+                saveData();
+            }
+        }
+
+        function removeResource(id) {
+            if (confirm('Remove this resource?')) {
+                resources = resources.filter(r => r.id !== id);
+                // Remove from tasks
+                tasks.forEach(task => {
+                    task.resourceIds = task.resourceIds.filter(rid => rid !== id);
+                });
+                renderResources();
+                refreshGantt();
+                saveData();
+            }
+        }
+
+        // Task Management
+        function addProject() {
+            showTaskModal({
+                name: 'New Project',
+                type: 'group',
+                start: formatDate(new Date()),
+                end: addDays(formatDate(new Date()), 30),
+                parent: 0,
+                phase: 'discovery'
+            });
+        }
+
+        function addTask() {
+            showTaskModal({
+                name: 'New Task',
+                type: 'task',
+                start: formatDate(new Date()),
+                end: addDays(formatDate(new Date()), 5),
+                parent: 0,
+                phase: 'discovery',
+                plannedHours: 8,
+                resourceIds: []
+            });
+        }
+
+        function showTaskModal(task = {}) {
+            document.getElementById('taskName').value = task.name || '';
+            document.getElementById('taskType').value = task.type || 'task';
+            document.getElementById('taskStart').value = task.start || formatDate(new Date());
+            document.getElementById('taskEnd').value = task.end || addDays(formatDate(new Date()), 5);
+            document.getElementById('taskHours').value = task.plannedHours || 8;
+            document.getElementById('taskPhase').value = task.phase || 'discovery';
+
+            // Update parent options
+            const parentSelect = document.getElementById('taskParent');
+            parentSelect.innerHTML = '<option value="0">None</option>';
+            tasks.filter(t => t.type === 'group').forEach(t => {
+                if (!task.id || t.id !== task.id) {
+                    parentSelect.innerHTML += `<option value="${t.id}">${t.name}</option>`;
+                }
+            });
+            parentSelect.value = task.parent || 0;
+
+            // Update resource options
+            const resourceSelect = document.getElementById('taskResources');
+            resourceSelect.innerHTML = resources.map(r =>
+                `<option value="${r.id}" ${task.resourceIds && task.resourceIds.includes(r.id) ? 'selected' : ''}>${r.name}</option>`
+            ).join('');
+
+            document.getElementById('taskModal').classList.remove('hidden');
+            document.getElementById('taskForm').onsubmit = (e) => saveTask(e, task.id);
+        }
+
+        function saveTask(e, taskId) {
+            e.preventDefault();
+
+            const formData = {
+                name: document.getElementById('taskName').value,
+                type: document.getElementById('taskType').value,
+                start: document.getElementById('taskStart').value,
+                end: document.getElementById('taskEnd').value,
+                plannedHours: parseFloat(document.getElementById('taskHours').value) || 0,
+                phase: document.getElementById('taskPhase').value,
+                parent: parseInt(document.getElementById('taskParent').value),
+                resourceIds: Array.from(document.getElementById('taskResources').selectedOptions).map(o => parseInt(o.value)),
+                status: 'active'
+            };
+
+            if (taskId) {
+                const task = tasks.find(t => t.id === taskId);
+                Object.assign(task, formData);
+            } else {
+                tasks.push({
+                    id: nextTaskId++,
+                    ...formData
+                });
+            }
+
+            closeModal();
+            refreshGantt();
+            saveData();
+        }
+
+        function closeModal() {
+            document.getElementById('taskModal').classList.add('hidden');
+            document.getElementById('taskForm').onsubmit = null;
+        }
+
+        function updateTaskForm() {
+            const resourceSelect = document.getElementById('taskResources');
+            if (resourceSelect) {
+                resourceSelect.innerHTML = resources.map(r =>
+                    `<option value="${r.id}">${r.name}</option>`
+                ).join('');
+            }
+        }
+
+        // Gantt Chart Management
+        function initGantt() {
+            try {
+                gantt = new JSGantt.GanttChart(document.getElementById('GanttChartDIV'), 'week');
+
+                gantt.setOptions({
+                    vCaptionType: 'Resource',
+                    vQuarterColWidth: 36,
+                    vDateTaskDisplayFormat: 'day dd month yyyy',
+                    vDayMajorDateDisplayFormat: 'mon yyyy - Week ww',
+                    vWeekMinorDateDisplayFormat: 'dd mon',
+                    vLang: 'en',
+                    vShowTaskInfoLink: 1,
+                    vShowEndWeekDate: 0,
+                    vUseSingleCell: 10000,
+                    vFormatArr: ['Day', 'Week', 'Month', 'Quarter'],
+                    vShowRes: 1,
+                    vShowDur: 1,
+                    vShowComp: 1,
+                    vShowStartDate: 1,
+                    vShowEndDate: 1
+                });
+
+                updateGantt();
+            } catch (error) {
+                console.error('Error initializing Gantt chart:', error);
+                showGanttError('Error loading Gantt chart. Please check console for details.');
+            }
+        }
+
+        function updateGantt() {
+            try {
+                if (!gantt) {
+                    console.error('Gantt chart not initialized');
+                    return;
+                }
+
+                // Clear existing tasks - JSGantt doesn't have clearTasks, we need to recreate
+                gantt = new JSGantt.GanttChart(document.getElementById('GanttChartDIV'), 'week');
+
+                gantt.setOptions({
+                    vCaptionType: 'Resource',
+                    vQuarterColWidth: 36,
+                    vDateTaskDisplayFormat: 'day dd month yyyy',
+                    vDayMajorDateDisplayFormat: 'mon yyyy - Week ww',
+                    vWeekMinorDateDisplayFormat: 'dd mon',
+                    vLang: 'en',
+                    vShowTaskInfoLink: 1,
+                    vShowEndWeekDate: 0,
+                    vUseSingleCell: 10000,
+                    vFormatArr: ['Day', 'Week', 'Month', 'Quarter'],
+                    vShowRes: 1,
+                    vShowDur: 1,
+                    vShowComp: 1,
+                    vShowStartDate: 1,
+                    vShowEndDate: 1
+                });
+
+                // Sort tasks by ID to ensure proper hierarchy
+                const sortedTasks = [...tasks].sort((a, b) => a.id - b.id);
+
+                sortedTasks.forEach(task => {
+                    const resourceNames = task.resourceIds.map(id => {
+                        const resource = resources.find(r => r.id === id);
+                        return resource ? resource.name : '';
+                    }).filter(name => name).join(', ');
+
+                    gantt.AddTaskItemObject({
+                        pID: task.id,
+                        pName: task.name,
+                        pStart: task.start,
+                        pEnd: task.end,
+                        pClass: getGanttClass(task.type, task.phase),
+                        pLink: '',
+                        pMile: task.type === 'milestone' ? 1 : 0,
+                        pRes: resourceNames,
+                        pComp: task.status === 'completed' ? 100 : (task.status === 'active' ? 50 : 0),
+                        pGroup: task.type === 'group' ? 1 : 0,
+                        pParent: task.parent,
+                        pOpen: 1,
+                        pDepend: '',
+                        pCaption: `${task.plannedHours}h`,
+                        pNotes: `Phase: ${task.phase}`
+                    });
+                });
+
+                gantt.Draw();
+                updateDashboard();
+            } catch (error) {
+                console.error('Error updating Gantt chart:', error);
+                showGanttError('Error updating Gantt chart. Please check console for details.');
+            }
+        }
+
+        function showGanttError(message) {
+            console.log('JSGantt failed, showing fallback chart');
+            createFallbackGantt();
+        }
+
+        function createFallbackGantt() {
+            const container = document.getElementById('GanttChartDIV');
+
+            // Get date range
+            const allDates = tasks.map(t => [new Date(t.start), new Date(t.end)]).flat();
+            const startDate = new Date(Math.min(...allDates));
+            const endDate = new Date(Math.max(...allDates));
+
+            // Generate weeks
+            const weeks = [];
+            let currentDate = new Date(startDate);
+            currentDate.setDate(currentDate.getDate() - currentDate.getDay() + 1); // Monday
+
+            while (currentDate <= endDate) {
+                weeks.push({
+                    start: new Date(currentDate),
+                    label: `${currentDate.getMonth() + 1}/${currentDate.getDate()}`
+                });
+                currentDate.setDate(currentDate.getDate() + 7);
+            }
+
+            let html = `
+                <div style="padding: 10px; background: #f8f9fa; border-radius: 4px; margin-bottom: 10px;">
+                    <h4 style="margin: 0 0 10px 0;">Project Timeline</h4>
+                    <small style="color: #666;">Using fallback timeline view</small>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+            `;
+
+            // Header with weeks
+            html += '<div style="display: flex; align-items: center; border-bottom: 2px solid #dee2e6; padding-bottom: 5px; margin-bottom: 10px;">';
+            html += '<div style="width: 200px; font-weight: bold; font-size: 12px;">Task</div>';
+            html += '<div style="flex: 1; display: flex; gap: 1px;">';
+            weeks.forEach(week => {
+                html += `<div style="flex: 1; text-align: center; font-size: 10px; color: #666; min-width: 30px;">${week.label}</div>`;
+            });
+            html += '</div></div>';
+
+            // Sort tasks for display
+            const displayTasks = tasks.filter(t => t.type !== 'milestone').sort((a, b) => {
+                if (a.parent !== b.parent) return a.parent - b.parent;
+                return a.id - b.id;
+            });
+
+            displayTasks.forEach(task => {
+                const taskStart = new Date(task.start);
+                const taskEnd = new Date(task.end);
+
+                html += '<div style="display: flex; align-items: center; padding: 2px 0;">';
+                html += `<div style="width: 200px; font-size: 12px; ${task.type === 'group' ? 'font-weight: bold;' : ''} padding-left: ${task.parent ? '20px' : '0'};">${task.name}</div>`;
+                html += '<div style="flex: 1; display: flex; gap: 1px; align-items: center;">';
+
+                weeks.forEach(week => {
+                    const weekEnd = new Date(week.start);
+                    weekEnd.setDate(weekEnd.getDate() + 6);
+
+                    let barContent = '';
+                    if (taskStart <= weekEnd && taskEnd >= week.start) {
+                        const color = getPhaseColor(task.phase);
+                        const opacity = task.type === 'group' ? '0.7' : '0.9';
+                        barContent = `<div style="height: 16px; background: ${color}; opacity: ${opacity}; border-radius: 2px; margin: 2px 0;"></div>`;
+                    }
+
+                    html += `<div style="flex: 1; min-width: 30px;">${barContent}</div>`;
+                });
+
+                html += '</div></div>';
+            });
+
+            // Add milestones
+            const milestones = tasks.filter(t => t.type === 'milestone');
+            if (milestones.length > 0) {
+                html += '<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #dee2e6;">';
+                html += '<div style="font-weight: bold; font-size: 12px; margin-bottom: 5px;">Milestones</div>';
+                milestones.forEach(milestone => {
+                    const milestoneDate = new Date(milestone.start);
+                    html += `<div style="font-size: 11px; color: #666; padding: 2px 0;">• ${milestone.name}: ${milestoneDate.toLocaleDateString()}</div>`;
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+
+            container.innerHTML = html;
+            updateDashboard();
+        }
+
+        function getGanttClass(type, phase) {
+            const baseClasses = {
+                group: 'ggroupblack',
+                task: 'gtaskblue',
+                milestone: 'gmilestone'
+            };
+            return baseClasses[type] || 'gtaskblue';
+        }
+
+        function refreshGantt() {
+            if (gantt && typeof JSGantt !== 'undefined') {
+                try {
+                    updateGantt();
+                } catch (error) {
+                    console.error('JSGantt update failed, switching to fallback:', error);
+                    gantt = null;
+                    createFallbackGantt();
+                }
+            } else {
+                createFallbackGantt();
+            }
+        }
+
+        // Dashboard Updates
+        function updateDashboard() {
+            updateUtilizationMetrics();
+            updateProjectMetrics();
+            updateMilestoneMetrics();
+            updateResourceAllocationChart();
+        }
+
+        function updateUtilizationMetrics() {
+            const container = document.getElementById('utilizationMetrics');
+            const utilization = calculateUtilization();
+
+            container.innerHTML = resources.map(resource => {
+                const util = utilization[resource.id] || { allocated: 0, capacity: resource.weeklyCapacityHours };
+                const percentage = ((util.allocated / util.capacity) * 100).toFixed(1);
+                let className = 'utilization-low';
+
+                if (percentage > 100) className = 'utilization-high';
+                else if (percentage > 80) className = 'utilization-medium';
+
+                return `
+                   <div class="metric">
+                       <span>${resource.name}</span>
+                       <span class="metric-value ${className}">${percentage}%</span>
+                   </div>
+               `;
+            }).join('');
+        }
+
+        function updateProjectMetrics() {
+            const container = document.getElementById('projectMetrics');
+            const projects = tasks.filter(t => t.type === 'group' && t.parent === 0);
+            const totalHours = tasks.reduce((sum, task) => sum + task.plannedHours, 0);
+
+            container.innerHTML = `
+               <div class="metric">
+                   <span>Active Projects</span>
+                   <span class="metric-value">${projects.length}</span>
+               </div>
+               <div class="metric">
+                   <span>Total Tasks</span>
+                   <span class="metric-value">${tasks.filter(t => t.type === 'task').length}</span>
+               </div>
+               <div class="metric">
+                   <span>Total Hours</span>
+                   <span class="metric-value">${totalHours.toFixed(1)}h</span>
+               </div>
+           `;
+        }
+
+        function updateMilestoneMetrics() {
+            const container = document.getElementById('milestoneMetrics');
+            const today = new Date();
+            const upcomingMilestones = tasks
+                .filter(t => t.type === 'milestone' && new Date(t.end) > today)
+                .sort((a, b) => new Date(a.end) - new Date(b.end))
+                .slice(0, 3);
+
+            if (upcomingMilestones.length === 0) {
+                container.innerHTML = '<div class="metric">No upcoming milestones</div>';
+                return;
+            }
+
+            container.innerHTML = upcomingMilestones.map(milestone => {
+                const daysUntil = Math.ceil((new Date(milestone.end) - today) / (1000 * 60 * 60 * 24));
+                return `
+                   <div class="metric">
+                       <span>${milestone.name}</span>
+                       <span class="metric-value">${daysUntil} days</span>
+                   </div>
+               `;
+            }).join('');
+        }
+
+        function calculateUtilization() {
+            const utilization = {};
+            const today = new Date();
+            const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+            resources.forEach(resource => {
+                utilization[resource.id] = {
+                    allocated: 0,
+                    capacity: resource.weeklyCapacityHours
+                };
+            });
+
+            tasks.forEach(task => {
+                const taskStart = new Date(task.start);
+                const taskEnd = new Date(task.end);
+
+                // Check if task overlaps with current week
+                if (taskStart <= nextWeek && taskEnd >= today) {
+                    const dailyBurn = calculateDailyBurn(task.plannedHours, task.start, task.end);
+                    const workingDays = Math.min(5, getWorkingDaysBetween(
+                        Math.max(today, taskStart).toISOString().split('T')[0],
+                        Math.min(nextWeek, taskEnd).toISOString().split('T')[0]
+                    ));
+
+                    const weeklyAllocation = dailyBurn * workingDays;
+
+                    task.resourceIds.forEach(resourceId => {
+                        if (utilization[resourceId]) {
+                            utilization[resourceId].allocated += weeklyAllocation / task.resourceIds.length;
+                        }
+                    });
+                }
+            });
+
+            return utilization;
+        }
+
+        function updateResourceAllocationChart() {
+            const container = document.getElementById('resourceAllocationChart');
+            if (!container) return;
+
+            // Get next 8 weeks starting from today
+            const today = new Date();
+            const weeks = [];
+
+            for (let i = 0; i < 8; i++) {
+                const weekStart = new Date(today);
+                weekStart.setDate(today.getDate() + (i * 7));
+                weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1); // Monday
+
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekStart.getDate() + 6); // Sunday
+
+                weeks.push({
+                    start: weekStart,
+                    end: weekEnd,
+                    label: `${weekStart.getMonth() + 1}/${weekStart.getDate()}`
+                });
+            }
+
+            // Calculate resource allocation for each week
+            const resourceAllocations = {};
+
+            resources.forEach(resource => {
+                resourceAllocations[resource.id] = {
+                    name: resource.name,
+                    capacity: resource.weeklyCapacityHours,
+                    weeks: weeks.map(() => ({ allocated: 0, tasks: [] }))
+                };
+            });
+
+            // Process each task to calculate weekly allocations
+            tasks.forEach(task => {
+                if (task.type === 'task' && task.resourceIds.length > 0) {
+                    const taskStart = new Date(task.start);
+                    const taskEnd = new Date(task.end);
+
+                    weeks.forEach((week, weekIndex) => {
+                        // Check if task overlaps with this week
+                        if (taskStart <= week.end && taskEnd >= week.start) {
+                            const dailyBurn = calculateDailyBurn(task.plannedHours, task.start, task.end);
+                            const overlapStart = new Date(Math.max(taskStart, week.start));
+                            const overlapEnd = new Date(Math.min(taskEnd, week.end));
+                            const workingDays = getWorkingDaysBetween(
+                                overlapStart.toISOString().split('T')[0],
+                                overlapEnd.toISOString().split('T')[0]
+                            );
+
+                            const weeklyAllocation = dailyBurn * workingDays;
+
+                            task.resourceIds.forEach(resourceId => {
+                                if (resourceAllocations[resourceId]) {
+                                    const allocation = weeklyAllocation / task.resourceIds.length;
+                                    resourceAllocations[resourceId].weeks[weekIndex].allocated += allocation;
+                                    resourceAllocations[resourceId].weeks[weekIndex].tasks.push({
+                                        name: task.name,
+                                        hours: allocation
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Generate HTML
+            let html = '<div class="resource-chart">';
+
+            // Header
+            html += '<div class="week-header">';
+            html += '<div class="week-header-name">Resource</div>';
+            html += '<div class="week-header-weeks">';
+            weeks.forEach(week => {
+                html += `<div class="week-header-cell">${week.label}</div>`;
+            });
+            html += '</div></div>';
+
+            // Resource rows
+            resources.forEach(resource => {
+                const allocation = resourceAllocations[resource.id];
+                html += '<div class="resource-row">';
+                html += `<div class="resource-name">${resource.name}</div>`;
+                html += '<div class="resource-weeks">';
+
+                allocation.weeks.forEach((week, weekIndex) => {
+                    const percentage = (week.allocated / allocation.capacity) * 100;
+                    const fillPercentage = Math.min(percentage, 100);
+
+                    let className = 'allocation-low';
+                    if (percentage > 100) className = 'allocation-over';
+                    else if (percentage > 80) className = 'allocation-high';
+                    else if (percentage > 60) className = 'allocation-medium';
+
+                    const taskList = week.tasks.map(t => `${t.name}: ${t.hours.toFixed(1)}h`).join('\n');
+
+                    html += `<div class="week-bar" title="${resource.name}\nWeek ${weekIndex + 1}: ${week.allocated.toFixed(1)}h / ${allocation.capacity}h (${percentage.toFixed(1)}%)\n\nTasks:\n${taskList}">`;
+                    html += `<div class="week-bar-fill ${className}" style="width: ${fillPercentage}%">`;
+                    if (week.allocated > 0) {
+                        html += `${week.allocated.toFixed(0)}h`;
+                    }
+                    html += '</div>';
+                    html += '</div>';
+                });
+
+                html += '</div></div>';
+            });
+
+            html += '</div>';
+
+            // Add legend
+            html += '<div style="margin-top: 15px; display: flex; gap: 20px; font-size: 12px;">';
+            html += '<span><span class="phase-color allocation-low"></span> Low (&lt;60%)</span>';
+            html += '<span><span class="phase-color allocation-medium"></span> Medium (60-80%)</span>';
+            html += '<span><span class="phase-color allocation-high"></span> High (80-100%)</span>';
+            html += '<span><span class="phase-color allocation-over"></span> Over capacity (&gt;100%)</span>';
+            html += '</div>';
+
+            container.innerHTML = html;
+        }
+
+        // Data Persistence
+        function saveData() {
+            try {
+                const data = {
+                    tasks,
+                    resources,
+                    nextTaskId,
+                    nextResourceId,
+                    timestamp: new Date().toISOString()
+                };
+                localStorage.setItem('projectTracker', JSON.stringify(data));
+            } catch (e) {
+                console.warn('Could not save to localStorage:', e);
+            }
+        }
+
+        function loadData() {
+            try {
+                const data = JSON.parse(localStorage.getItem('projectTracker'));
+                if (data) {
+                    tasks = data.tasks || tasks;
+                    resources = data.resources || resources;
+                    nextTaskId = data.nextTaskId || nextTaskId;
+                    nextResourceId = data.nextResourceId || nextResourceId;
+                }
+            } catch (e) {
+                console.warn('Could not load from localStorage:', e);
+            }
+        }
+
+        // Import/Export
+        function exportData() {
+            const data = {
+                tasks,
+                resources,
+                nextTaskId,
+                nextResourceId,
+                timestamp: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `project-tracker-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData() {
+            document.getElementById('fileInput').click();
+        }
+
+        function loadFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (data.tasks && data.resources) {
+                            tasks = data.tasks;
+                            resources = data.resources;
+                            nextTaskId = data.nextTaskId || nextTaskId;
+                            nextResourceId = data.nextResourceId || nextResourceId;
+
+                            renderResources();
+                            refreshGantt();
+                            saveData();
+                            alert('Data imported successfully!');
+                        } else {
+                            alert('Invalid file format');
+                        }
+                    } catch (error) {
+                        alert('Error reading file: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key) {
+                    case 'n':
+                        e.preventDefault();
+                        addTask();
+                        break;
+                    case 'p':
+                        e.preventDefault();
+                        addProject();
+                        break;
+                    case 's':
+                        e.preventDefault();
+                        saveData();
+                        break;
+                    case 'e':
+                        e.preventDefault();
+                        exportData();
+                        break;
+                }
+            }
+        });
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', () => {
+            // Ensure modal is hidden on page load
+            const modal = document.getElementById('taskModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+
+            loadData();
+            renderResources();
+            updateTaskForm();
+
+            // Check if JSGantt library is loaded
+            if (typeof JSGantt !== 'undefined') {
+                try {
+                    initGantt();
+                } catch (error) {
+                    console.error('JSGantt initialization failed:', error);
+                    createFallbackGantt();
+                }
+            } else {
+                console.log('JSGantt library not loaded, using fallback chart');
+                createFallbackGantt();
+            }
+
+            // Add ESC key handler for modal
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+
+            // Auto-save every 30 seconds
+            setInterval(saveData, 30000);
+        });
+
+        // Click outside modal to close
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('taskModal');
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+
+</html>
