@@ -1,0 +1,70 @@
+<!-- templates/forecast_results.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>Forecast Results: {{ product_sku }}</h3>
+            <a href="{{ url_for('export_forecast', product_sku=product_sku) }}" class="btn btn-success">
+                Export CSV
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div id="forecast-chart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Forecast Data</h5>
+            </div>
+            <div class="card-body">
+                {% if forecasts %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Predicted Demand</th>
+                                <th>Confidence Range</th>
+                                <th>Model</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for forecast in forecasts %}
+                            <tr>
+                                <td>{{ forecast.forecast_date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ "%.1f"|format(forecast.predicted_demand) }}</td>
+                                <td>{{ "%.1f"|format(forecast.confidence_lower) }} - {{
+                                    "%.1f"|format(forecast.confidence_upper) }}</td>
+                                <td>{{ forecast.model_used.upper() }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No forecast data available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var graphDiv = document.getElementById('forecast-chart');
+    var graphJSON = {{ graphJSON| safe }};
+    Plotly.newPlot(graphDiv, graphJSON.data, graphJSON.layout);
+</script>
+{% endblock %}

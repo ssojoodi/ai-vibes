@@ -1,0 +1,79 @@
+<!-- templates/upload.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>Upload Data</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="source_name" class="form-label">Data Source</label>
+                        <select class="form-select" id="source_name" name="source_name" required>
+                            <option value="">Select data source...</option>
+                            <option value="Amazon">Amazon</option>
+                            <option value="FBA">FBA</option>
+                            <option value="Walmart">Walmart</option>
+                            <option value="Shopify">Shopify</option>
+                            <option value="Internal">Internal Tracker</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="data_type" class="form-label">Data Type</label>
+                        <select class="form-select" id="data_type" name="data_type" required>
+                            <option value="">Select data type...</option>
+                            <option value="sales">Sales Data</option>
+                            <option value="inventory">Inventory Data</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="file" class="form-label">CSV File</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".csv" required>
+                        <div class="form-text">Upload CSV files only. Maximum file size: 10MB</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Upload Data</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>CSV Format Requirements</h5>
+            </div>
+            <div class="card-body">
+                <h6>Sales Data CSV:</h6>
+                <ul class="small">
+                    <li><strong>date</strong> (YYYY-MM-DD)</li>
+                    <li><strong>product_sku</strong></li>
+                    <li><strong>quantity_sold</strong></li>
+                    <li>product_name (optional)</li>
+                    <li>revenue (optional)</li>
+                    <li>cost (optional)</li>
+                </ul>
+
+                <h6>Inventory Data CSV:</h6>
+                <ul class="small">
+                    <li><strong>date</strong> (YYYY-MM-DD)</li>
+                    <li><strong>product_sku</strong></li>
+                    <li><strong>current_stock</strong></li>
+                    <li>reorder_point (optional)</li>
+                    <li>max_stock (optional)</li>
+                </ul>
+
+                <div class="alert alert-info small mt-3">
+                    <strong>Note:</strong> Required fields are in bold. Optional fields will default to 0 if not
+                    provided.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

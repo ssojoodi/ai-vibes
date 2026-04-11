@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Demand Forecasting{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Dashboard</h1>
+    <p class="text-secondary">Welcome back, {{ current_user.username }}</p>
+</div>
+
+<div class="dashboard-grid">
+    <div class="stat-card">
+        <h3>Total Products</h3>
+        <div class="stat-value">{{ stats.total_products }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Forecast Accuracy</h3>
+        <div class="stat-value">{{ "%.2f"|format(stats.accuracy) }}%</div>
+    </div>
+    <div class="stat-card">
+        <h3>Data Points</h3>
+        <div class="stat-value">{{ stats.data_points }}</div>
+    </div>
+</div>
+
+<div class="dashboard-charts">
+    <div class="chart-container">
+        <h2>Demand Forecast Overview</h2>
+        <canvas id="forecastChart"></canvas>
+    </div>
+
+    <div class="chart-container">
+        <h2>Product Categories Distribution</h2>
+        <canvas id="categoriesChart"></canvas>
+    </div>
+</div>
+
+<div class="card recent-forecasts">
+    <h2>Recent Forecasts</h2>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Forecast Date</th>
+                    <th>Predicted Demand</th>
+                    <th>Confidence</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for forecast in recent_forecasts %}
+                <tr>
+                    <td>{{ forecast.product_name }}</td>
+                    <td>{{ forecast.date }}</td>
+                    <td>{{ forecast.predicted_demand }}</td>
+                    <td>
+                        <div class="confidence-bar" style="--confidence: {{ forecast.confidence }}%">
+                            {{ "%.1f"|format(forecast.confidence) }}%
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

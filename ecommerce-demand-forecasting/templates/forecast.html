@@ -1,0 +1,70 @@
+<!-- templates/forecast.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>Generate Forecast</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('generate_forecast') }}">
+                    <div class="mb-3">
+                        <label for="product_sku" class="form-label">Product SKU</label>
+                        <select class="form-select" id="product_sku" name="product_sku" required>
+                            <option value="">Select product...</option>
+                            {% for product in products %}
+                            <option value="{{ product }}">{{ product }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="forecast_days" class="form-label">Forecast Period (Days)</label>
+                        <select class="form-select" id="forecast_days" name="forecast_days">
+                            <option value="7">7 days</option>
+                            <option value="14">14 days</option>
+                            <option value="30" selected>30 days</option>
+                            <option value="60">60 days</option>
+                            <option value="90">90 days</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="model_type" class="form-label">Forecasting Model</label>
+                        <select class="form-select" id="model_type" name="model_type">
+                            <option value="arima" selected>ARIMA</option>
+                            <option value="exponential_smoothing">Exponential Smoothing</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Generate Forecast</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Forecasting Models</h5>
+            </div>
+            <div class="card-body">
+                <h6>ARIMA</h6>
+                <p class="small">AutoRegressive Integrated Moving Average model. Best for data with trends and patterns.
+                </p>
+
+                <h6>Exponential Smoothing</h6>
+                <p class="small">Weighted average of past observations. Good for data with level and trend components.
+                </p>
+
+                <div class="alert alert-info small">
+                    <strong>Tip:</strong> Need at least 10 data points for accurate forecasting. More data generally
+                    produces better results.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

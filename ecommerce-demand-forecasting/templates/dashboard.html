@@ -1,0 +1,143 @@
+<!-- templates/dashboard.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Dashboard</h2>
+        <p class="text-muted">Welcome back, {{ current_user.username }}!</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">Total Products</h5>
+                <h2>{{ total_products }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h5 class="card-title">Active Alerts</h5>
+                <h2>{{ recent_alerts|length }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">Recent Forecasts</h5>
+                <h2>{{ recent_forecasts|length }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">Data Sources</h5>
+                <h2>5</h2>
+                <small>Amazon, FBA, Walmart, Shopify, Internal</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Forecasts</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_forecasts %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Product SKU</th>
+                                <th>Forecast Date</th>
+                                <th>Predicted Demand</th>
+                                <th>Model</th>
+                                <th>Generated</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for forecast in recent_forecasts %}
+                            <tr>
+                                <td>{{ forecast.product_sku }}</td>
+                                <td>{{ forecast.forecast_date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ "%.1f"|format(forecast.predicted_demand) }}</td>
+                                <td>{{ forecast.model_used.upper() }}</td>
+                                <td>{{ forecast.created_at.strftime('%m/%d %H:%M') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No forecasts generated yet. <a href="{{ url_for('forecast_view') }}">Create your
+                        first forecast</a></p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Alerts</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_alerts %}
+                {% for alert in recent_alerts %}
+                <div class="alert alert-warning alert-sm mb-2">
+                    <small><strong>{{ alert.alert_type.title() }}:</strong> {{ alert.message }}</small>
+                    <br><small class="text-muted">{{ alert.created_at.strftime('%m/%d %H:%M') }}</small>
+                </div>
+                {% endfor %}
+                <a href="{{ url_for('alerts') }}" class="btn btn-sm btn-outline-primary">View All Alerts</a>
+                {% else %}
+                <p class="text-muted">No active alerts</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <a href="{{ url_for('upload_data') }}" class="btn btn-primary w-100 mb-2">
+                            Upload Data
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('forecast_view') }}" class="btn btn-success w-100 mb-2">
+                            Generate Forecast
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('scenario_planning') }}" class="btn btn-info w-100 mb-2">
+                            Scenario Planning
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('alerts') }}" class="btn btn-warning w-100 mb-2">
+                            View Alerts
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

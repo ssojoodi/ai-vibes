@@ -1,0 +1,34 @@
+<!-- templates/index.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="jumbotron bg-light p-5 rounded">
+            <h1 class="display-4">Demand Forecasting Tool</h1>
+            <p class="lead">Predict demand accurately and optimize inventory for your household items business.</p>
+            <hr class="my-4">
+            <p>Upload data from Amazon, FBA, Walmart, Shopify, and internal trackers to generate forecasts.</p>
+            <div class="mt-4">
+                <a class="btn btn-primary btn-lg me-3" href="{{ url_for('register') }}">Get Started</a>
+                <a class="btn btn-outline-primary btn-lg" href="{{ url_for('login') }}">Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <h3>Multi-Source Integration</h3>
+        <p>Import CSV data from Amazon, FBA, Walmart, Shopify, and internal systems.</p>
+    </div>
+    <div class="col-md-4">
+        <h3>Advanced Forecasting</h3>
+        <p>ARIMA and Exponential Smoothing models for accurate demand prediction.</p>
+    </div>
+    <div class="col-md-4">
+        <h3>Smart Alerts</h3>
+        <p>Automated reorder alerts based on forecasted demand and current inventory.</p>
+    </div>
+</div>
+{% endblock %}

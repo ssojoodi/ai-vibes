@@ -1,0 +1,89 @@
+<!-- templates/scenario_planning.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>Scenario Planning</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('run_scenario') }}">
+                    <div class="mb-3">
+                        <label for="product_sku" class="form-label">Product SKU</label>
+                        <select class="form-select" id="product_sku" name="product_sku" required>
+                            <option value="">Select product...</option>
+                            {% for product in products %}
+                            <option value="{{ product }}">{{ product }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="scenario_type" class="form-label">Scenario Type</label>
+                        <select class="form-select" id="scenario_type" name="scenario_type"
+                            onchange="updateAdjustmentFactor()">
+                            <option value="promotion">Promotion (20% increase)</option>
+                            <option value="seasonal_high">Seasonal High (50% increase)</option>
+                            <option value="seasonal_low">Seasonal Low (30% decrease)</option>
+                            <option value="economic_downturn">Economic Downturn (40% decrease)</option>
+                            <option value="custom">Custom Adjustment</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="adjustment_factor" class="form-label">Adjustment Factor</label>
+                        <input type="number" class="form-control" id="adjustment_factor" name="adjustment_factor"
+                            value="1.2" step="0.1" min="0.1" max="3.0">
+                        <div class="form-text">1.0 = no change, 1.2 = 20% increase, 0.8 = 20% decrease</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Run Scenario</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Scenario Examples</h5>
+            </div>
+            <div class="card-body">
+                <h6>Promotion Scenario</h6>
+                <p class="small">Model the impact of a marketing campaign or price reduction on demand.</p>
+
+                <h6>Seasonal Scenarios</h6>
+                <p class="small">Adjust forecasts for holiday seasons, summer peaks, or winter lows.</p>
+
+                <h6>Economic Impact</h6>
+                <p class="small">See how economic conditions might affect your product demand.</p>
+
+                <div class="alert alert-info small">
+                    <strong>Note:</strong> Generate a base forecast first before running scenarios.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateAdjustmentFactor() {
+        const scenario = document.getElementById('scenario_type').value;
+        const factorInput = document.getElementById('adjustment_factor');
+
+        const factors = {
+            'promotion': 1.2,
+            'seasonal_high': 1.5,
+            'seasonal_low': 0.7,
+            'economic_downturn': 0.6,
+            'custom': 1.0
+        };
+
+        if (factors[scenario]) {
+            factorInput.value = factors[scenario];
+        }
+    }
+</script>
+{% endblock %}

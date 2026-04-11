@@ -1,0 +1,44 @@
+<!-- templates/alerts.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h3>Alerts</h3>
+        <p class="text-muted">Monitor reorder points and inventory levels</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if alerts %}
+                {% for alert in alerts %}
+                <div
+                    class="alert {% if not alert.is_read %}alert-warning{% else %}alert-secondary{% endif %} d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="alert-heading">{{ alert.alert_type.title() }} Alert - {{ alert.product_sku }}</h6>
+                        <p class="mb-1">{{ alert.message }}</p>
+                        <small class="text-muted">{{ alert.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                    </div>
+                    {% if not alert.is_read %}
+                    <a href="{{ url_for('mark_alert_read', alert_id=alert.id) }}"
+                        class="btn btn-sm btn-outline-primary">
+                        Mark Read
+                    </a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="text-center py-5">
+                    <h5 class="text-muted">No alerts</h5>
+                    <p class="text-muted">Alerts will appear here when reorders are needed or inventory levels are
+                        critical.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,10 @@
+# requirements.txt
+Flask
+Flask-SQLAlchemy
+Flask-Login
+Werkzeug
+pandas
+numpy
+statsmodels
+plotly
+python-dateutil
