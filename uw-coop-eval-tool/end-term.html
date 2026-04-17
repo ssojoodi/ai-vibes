@@ -1,0 +1,1072 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>UW Co-op Employer End-of-Term Evaluation - Internal</title>
+        <link rel="stylesheet" href="common.css" />
+    </head>
+
+    <body>
+        <div class="page-wrap">
+            <header class="page-header">
+                <div class="page-header__left">
+                    <h1>
+                        UW Co-op · Employer End-of-Term Evaluation - Internal
+                    </h1>
+                </div>
+                <div class="header-actions">
+                    <button
+                        class="btn btn-ghost btn-icon"
+                        id="themeToggle"
+                        title="Toggle dark/light mode"
+                        aria-label="Toggle theme"
+                        type="button"
+                    >
+                        🌙
+                    </button>
+                </div>
+            </header>
+
+            <form id="evaluationForm" novalidate>
+                <div class="placement-card">
+                    <div class="placement-card__title">
+                        Placement Information
+                    </div>
+                    <div class="placement-grid">
+                        <div class="placement-field">
+                            <label for="pi_student">Student Name</label>
+                            <input
+                                type="text"
+                                id="pi_student"
+                                placeholder="e.g. Jane Smith"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <section class="form-section">
+                    <div class="form-section__header">
+                        <h2>Your Information</h2>
+                    </div>
+                    <div class="form-section__body">
+                        <div class="fields-grid">
+                            <div class="field">
+                                <label for="q_your_name">Your full name</label>
+                                <input
+                                    type="text"
+                                    id="q_your_name"
+                                    placeholder="Full name"
+                                />
+                            </div>
+                            <div class="field">
+                                <label for="q_your_email">Your email</label>
+                                <input
+                                    type="email"
+                                    id="q_your_email"
+                                    placeholder="name@example.com"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="info-card">
+                    <div class="info-card__title">Rating Guide</div>
+                    <ul class="info-card__list">
+                        <li>
+                            These scales measure the skills, abilities, and
+                            knowledge co-op students are expected to develop
+                            across work terms.
+                        </li>
+                        <li>
+                            Rate the student against your expectations for the
+                            position, not against a general idealized standard.
+                        </li>
+                        <li>
+                            The official form notes that an
+                            <strong>Outstanding</strong> overall rating requires
+                            written comments.
+                        </li>
+                    </ul>
+                    <div class="scale-list">
+                        <div class="scale-item">
+                            <strong>4</strong> Strong performance; exceeded
+                            expectations in this area
+                        </div>
+                        <div class="scale-item">
+                            <strong>3</strong> Good performance; met
+                            expectations in this area
+                        </div>
+                        <div class="scale-item">
+                            <strong>2</strong> Developing performance; somewhat
+                            below expectations in this area
+                        </div>
+                        <div class="scale-item">
+                            <strong>1</strong> Poor performance; significantly
+                            below expectations in this area
+                        </div>
+                        <div class="scale-item">
+                            <strong>N.O.</strong> Not observed; insufficient
+                            opportunity to observe performance in this area
+                        </div>
+                    </div>
+                </div>
+
+                <section class="form-section">
+                    <div class="form-section__header">
+                        <h2>Rating Details</h2>
+                    </div>
+                    <div
+                        class="form-section__body"
+                        id="competencySections"
+                    ></div>
+                </section>
+
+                <section class="form-section">
+                    <div class="form-section__header">
+                        <h2>Strengths</h2>
+                    </div>
+                    <div class="form-section__body">
+                        <div class="field">
+                            <label>
+                                Top 3 areas of strength<span
+                                    class="required-mark"
+                                    >*</span
+                                >
+                            </label>
+                            <div class="hint">
+                                Select up to 3. These are the 12 Waterloo Future
+                                Ready Talent Framework competencies.
+                            </div>
+                            <div class="helper-note">
+                                The official form allows only 3 selections.
+                            </div>
+                            <div
+                                class="checkbox-grid"
+                                id="strengthOptions"
+                            ></div>
+                        </div>
+
+                        <div class="field">
+                            <label for="q_strength_comments"
+                                >Additional comments on the student's top 3
+                                areas of strength</label
+                            >
+                            <textarea
+                                id="q_strength_comments"
+                                rows="5"
+                                placeholder="Optional. Add examples, context, or evidence from the work term."
+                            ></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <div class="form-section__header">
+                        <h2>Development</h2>
+                    </div>
+                    <div class="form-section__body">
+                        <div class="field">
+                            <label>
+                                Top 3 areas for development<span
+                                    class="required-mark"
+                                    >*</span
+                                >
+                            </label>
+                            <div class="hint">
+                                Select up to 3. These are the same 12 Waterloo
+                                competencies used on the official form.
+                            </div>
+                            <div class="helper-note">
+                                The official form allows only 3 selections.
+                            </div>
+                            <div
+                                class="checkbox-grid"
+                                id="developmentOptions"
+                            ></div>
+                        </div>
+
+                        <div class="field">
+                            <label for="q_development_comments"
+                                >Additional comments on the student's top 3
+                                areas for development</label
+                            >
+                            <textarea
+                                id="q_development_comments"
+                                rows="5"
+                                placeholder="Optional. Add examples, context, or concrete growth opportunities."
+                            ></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <div class="form-section__header">
+                        <h2>Optional SDGs</h2>
+                    </div>
+                    <div class="form-section__body">
+                        <div class="field">
+                            <label
+                                >United Nations' Sustainable Development
+                                Goals</label
+                            >
+                            <div class="hint">
+                                Thinking about the student's role during the
+                                work term, select the main UN SDGs they
+                                impacted. Participation in the Waterloo SDGs
+                                activity is not required.
+                            </div>
+                            <div class="checkbox-grid" id="sdgOptions"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <div class="form-section__header">
+                        <h2>Overall Evaluation</h2>
+                    </div>
+                    <div class="form-section__body">
+                        <div class="field">
+                            <label for="q_overall_rating"
+                                >Overall performance rating<span
+                                    class="required-mark"
+                                    >*</span
+                                ></label
+                            >
+                            <select id="q_overall_rating">
+                                <option value="">— select —</option>
+                                <option value="OUTSTANDING">OUTSTANDING</option>
+                                <option value="EXCELLENT">EXCELLENT</option>
+                                <option value="VERY GOOD">VERY GOOD</option>
+                                <option value="GOOD">GOOD</option>
+                                <option value="SATISFACTORY">
+                                    SATISFACTORY
+                                </option>
+                                <option value="MARGINAL">MARGINAL</option>
+                                <option value="UNSATISFACTORY">
+                                    UNSATISFACTORY
+                                </option>
+                            </select>
+                            <div class="hint">
+                                Outstanding is reserved for exceptional
+                                contribution or performance and requires written
+                                comments on the official form.
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label for="q_supervisor_comments"
+                                >Supervisor's comments</label
+                            >
+                            <textarea
+                                id="q_supervisor_comments"
+                                rows="6"
+                                placeholder="Please comment on the student's overall job performance."
+                            ></textarea>
+                        </div>
+
+                        <div class="field">
+                            <label for="q_supervisor_recommendations"
+                                >Supervisor's recommendations</label
+                            >
+                            <textarea
+                                id="q_supervisor_recommendations"
+                                rows="6"
+                                placeholder="Please provide recommendations for the student's personal and/or professional development."
+                            ></textarea>
+                        </div>
+
+                        <div class="fields-grid">
+                            <div class="field">
+                                <label for="q_reviewed_with_student"
+                                    >Did you review the completed evaluation
+                                    form with the student?<span
+                                        class="required-mark"
+                                        >*</span
+                                    ></label
+                                >
+                                <select id="q_reviewed_with_student">
+                                    <option value="">— select —</option>
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
+                                <div class="hint">
+                                    The official form reminds you to ensure the
+                                    student has a copy of the completed
+                                    evaluation.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <div class="form-section__header">
+                        <h2>Student Comments</h2>
+                    </div>
+                    <div class="form-section__body">
+                        <div class="field">
+                            <label for="q_student_comments"
+                                >Student comments</label
+                            >
+                            <textarea
+                                id="q_student_comments"
+                                rows="6"
+                                placeholder="After the supervisor has completed the evaluation, the student can comment on their overall performance, learning objectives, and future employment expectations."
+                            ></textarea>
+                            <div class="hint">
+                                Included because it appears on the official
+                                end-of-term form, even though it is not
+                                supervisor-authored.
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <div class="form-section__header">
+                        <h2>Future Employment Potential</h2>
+                    </div>
+                    <div class="form-section__body">
+                        <div class="field">
+                            <label for="q_return_next_term"
+                                >Do you wish to have the student return for the
+                                next work term?<span class="required-mark"
+                                    >*</span
+                                ></label
+                            >
+                            <select id="q_return_next_term">
+                                <option value="">— select —</option>
+                                <option value="N/A">N/A</option>
+                                <option value="No">No</option>
+                                <option value="Undecided">Undecided</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+            </form>
+
+            <div class="action-bar">
+                <div class="action-bar__left">
+                    <button
+                        class="btn btn-primary"
+                        id="saveDraftBtn"
+                        type="button"
+                        title="Save the current form state to localStorage"
+                    >
+                        💾 Save Draft
+                    </button>
+                    <button
+                        class="btn btn-danger"
+                        id="clearBtn"
+                        type="button"
+                        title="Clear saved draft and reset all form data"
+                    >
+                        ✕ Clear
+                    </button>
+                </div>
+                <div class="action-bar__right">
+                    <button
+                        class="btn btn-outline"
+                        id="exportJsonBtn"
+                        type="button"
+                        title="Download the current form data as JSON"
+                    >
+                        ⬇ Export JSON
+                    </button>
+                    <button
+                        class="btn btn-ghost"
+                        id="importJsonBtn"
+                        type="button"
+                        title="Load a previously exported JSON file"
+                    >
+                        ⬆ Import JSON
+                    </button>
+                    <button
+                        class="btn btn-outline"
+                        id="exportMdBtn"
+                        type="button"
+                        title="Export the current form as Markdown"
+                    >
+                        📄 Export MD
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <input type="file" id="importFileInput" accept=".json" />
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+        <script>
+            const STORAGE_KEY = "uw_end_term_draft";
+            const THEME_KEY = "uw_theme";
+
+            const RATING_CHOICES = [
+                { value: "Not observed", short: "N.O.", text: "Not observed" },
+                {
+                    value: "1 - Poor performance",
+                    short: "1",
+                    text: "Poor performance",
+                },
+                {
+                    value: "2 - Developing performance",
+                    short: "2",
+                    text: "Developing performance",
+                },
+                {
+                    value: "3 - Good performance",
+                    short: "3",
+                    text: "Good performance",
+                },
+                {
+                    value: "4 - Strong performance",
+                    short: "4",
+                    text: "Strong performance",
+                },
+            ];
+
+            const COMPETENCY_SECTIONS = [
+                {
+                    id: "expand_transfer_expertise",
+                    title: "Expand and Transfer Expertise",
+                    items: [
+                        "learn job duties and work processes",
+                        "locate, evaluate, and use information effectively",
+                        "draw reasoned conclusions from multiple sources of information",
+                        "learn and employ technical skills necessary for the role",
+                        "apply skills and prior knowledge from academic program and/or previous work experience",
+                    ],
+                },
+                {
+                    id: "design_deliver_solutions",
+                    title: "Design and Deliver Solutions",
+                    items: [
+                        "deliver quality work",
+                        "meet deadlines and cope with workplace pressures",
+                        "analyze problems and evaluate alternative solutions",
+                        "engage in work with curiosity; ask questions to understand more than the work assigned",
+                        "identify opportunities for improvement within the team and/or organization",
+                    ],
+                },
+                {
+                    id: "develop_self",
+                    title: "Develop Self",
+                    items: [
+                        "adapt to changing priorities and circumstances",
+                        "recognize limits of knowledge, skills and abilities",
+                        "respond well to direction and incorporate feedback on performance",
+                        "seek new tasks and responsibilities",
+                        "seek opportunities to learn",
+                    ],
+                },
+                {
+                    id: "build_relationships",
+                    title: "Build Relationships",
+                    items: [
+                        "write clearly and effectively",
+                        "orally convey ideas and information clearly and effectively",
+                        "collaborate well with others; both co-workers and supervisor/senior leaders",
+                        "demonstrate ethical conduct in the workplace",
+                        "show understanding and sensitivity to the needs and differences of others in the workplace (e.g. ethnicity, religion, language, etc.)",
+                    ],
+                },
+            ];
+
+            const FRAMEWORK_OPTIONS = [
+                "Discipline and context specific skills",
+                "Information and data literacy",
+                "Technological agility",
+                "Self-management",
+                "Self-assessment",
+                "Lifelong learning and career development",
+                "Communication",
+                "Collaboration",
+                "Intercultural effectiveness",
+                "Innovation mindset",
+                "Critical thinking",
+                "Implementation",
+            ];
+
+            const SDG_OPTIONS = [
+                "1. No Poverty",
+                "2. Zero Hunger",
+                "3. Good Health and Well-being",
+                "4. Quality Education",
+                "5. Gender Equality",
+                "6. Clean Water and Sanitation",
+                "7. Affordable and Clean Energy",
+                "8. Decent Work and Economic Growth",
+                "9. Industry, Innovation and Infrastructure",
+                "10. Reduced Inequalities",
+                "11. Sustainable Cities and Communities",
+                "12. Responsible Consumption and Production",
+                "13. Climate Action",
+                "14. Life Below Water",
+                "15. Life on Land",
+                "16. Peace, Justice and Strong Institutions",
+                "17. Partnerships for the Goals",
+                "None",
+            ];
+
+            const TEXT_FIELDS = [
+                "pi_student",
+                "pi_student_id",
+                "pi_org",
+                "pi_division",
+                "pi_job_title",
+                "pi_term",
+                "pi_supervisor",
+                "pi_supervisor_email",
+                "q_your_name",
+                "q_your_title",
+                "q_your_email",
+                "q_your_phone",
+                "q_strength_comments",
+                "q_development_comments",
+                "q_overall_rating",
+                "q_supervisor_comments",
+                "q_supervisor_recommendations",
+                "q_reviewed_with_student",
+                "q_student_comments",
+                "q_return_next_term",
+            ];
+
+            const CHECKBOX_GROUPS = {
+                q_strengths: { options: FRAMEWORK_OPTIONS, max: 3 },
+                q_developments: { options: FRAMEWORK_OPTIONS, max: 3 },
+                q_sdgs: { options: SDG_OPTIONS, max: null },
+            };
+
+            const RADIO_GROUPS = COMPETENCY_SECTIONS.flatMap((section) =>
+                section.items.map((_, index) => `${section.id}_${index}`),
+            );
+
+            function escapeHtml(value) {
+                return value
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;");
+            }
+
+            function renderCompetencies() {
+                const container = document.getElementById("competencySections");
+
+                container.innerHTML = COMPETENCY_SECTIONS.map((section) => {
+                    const rows = section.items
+                        .map((item, index) => {
+                            const groupName = `${section.id}_${index}`;
+                            const options = RATING_CHOICES.map(
+                                (choice) => `
+            <label class="rating-option">
+              <input type="radio" name="${groupName}" value="${escapeHtml(choice.value)}">
+              <span class="rating-option__card">
+                <span class="rating-option__short">${escapeHtml(choice.short)}</span>
+                <span class="rating-option__text">${escapeHtml(choice.text)}</span>
+              </span>
+            </label>
+          `,
+                            ).join("");
+
+                            return `
+            <div class="rating-row">
+              <div class="rating-row__label">${escapeHtml(item)}</div>
+              <div class="rating-options">${options}</div>
+            </div>
+          `;
+                        })
+                        .join("");
+
+                    return `
+          <div class="competency-group">
+            <div class="competency-group__title">${escapeHtml(section.title)}</div>
+            <div class="competency-group__intro">Student demonstrates the ability to:</div>
+            ${rows}
+          </div>
+        `;
+                }).join("");
+            }
+
+            function renderCheckboxGroup(containerId, groupName, options) {
+                const container = document.getElementById(containerId);
+
+                container.innerHTML = options
+                    .map(
+                        (option) => `
+        <label class="checkbox-option">
+          <input type="checkbox" name="${groupName}" value="${escapeHtml(option)}">
+          <span class="checkbox-option__card">
+            <span class="checkbox-option__label">${escapeHtml(option)}</span>
+            <span class="checkbox-option__indicator" aria-hidden="true"></span>
+          </span>
+        </label>
+      `,
+                    )
+                    .join("");
+            }
+
+            renderCompetencies();
+            renderCheckboxGroup(
+                "strengthOptions",
+                "q_strengths",
+                FRAMEWORK_OPTIONS,
+            );
+            renderCheckboxGroup(
+                "developmentOptions",
+                "q_developments",
+                FRAMEWORK_OPTIONS,
+            );
+            renderCheckboxGroup("sdgOptions", "q_sdgs", SDG_OPTIONS);
+
+            const html = document.documentElement;
+            const themeBtn = document.getElementById("themeToggle");
+            const form = document.getElementById("evaluationForm");
+            const importFileInput = document.getElementById("importFileInput");
+
+            function applyTheme(theme) {
+                html.dataset.theme = theme;
+                themeBtn.textContent = theme === "dark" ? "☀️" : "🌙";
+                localStorage.setItem(THEME_KEY, theme);
+            }
+
+            themeBtn.addEventListener("click", () => {
+                applyTheme(html.dataset.theme === "dark" ? "light" : "dark");
+            });
+
+            applyTheme(localStorage.getItem(THEME_KEY) || "light");
+
+            let toastTimer;
+            function showToast(message) {
+                const toast = document.getElementById("toast");
+                toast.textContent = message;
+                toast.classList.add("show");
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(
+                    () => toast.classList.remove("show"),
+                    2800,
+                );
+            }
+
+            function getCheckboxValues(groupName) {
+                return [
+                    ...document.querySelectorAll(
+                        `input[name="${groupName}"]:checked`,
+                    ),
+                ].map((input) => input.value);
+            }
+
+            function getRadioValue(groupName) {
+                const selected = document.querySelector(
+                    `input[name="${groupName}"]:checked`,
+                );
+                return selected ? selected.value : "";
+            }
+
+            function getFormData() {
+                const data = {};
+
+                TEXT_FIELDS.forEach((id) => {
+                    const element = document.getElementById(id);
+                    data[id] = element ? element.value : "";
+                });
+
+                RADIO_GROUPS.forEach((groupName) => {
+                    data[groupName] = getRadioValue(groupName);
+                });
+
+                Object.keys(CHECKBOX_GROUPS).forEach((groupName) => {
+                    data[groupName] = getCheckboxValues(groupName);
+                });
+
+                return data;
+            }
+
+            function setTextValues(data) {
+                TEXT_FIELDS.forEach((id) => {
+                    const element = document.getElementById(id);
+                    if (element && data[id] !== undefined) {
+                        element.value = data[id];
+                    }
+                });
+            }
+
+            function setRadioValues(data) {
+                RADIO_GROUPS.forEach((groupName) => {
+                    const inputs = document.querySelectorAll(
+                        `input[name="${groupName}"]`,
+                    );
+                    inputs.forEach((input) => {
+                        input.checked = data[groupName] === input.value;
+                    });
+                });
+            }
+
+            function setCheckboxValues(data) {
+                Object.entries(CHECKBOX_GROUPS).forEach(([groupName]) => {
+                    const selected = Array.isArray(data[groupName])
+                        ? new Set(data[groupName])
+                        : new Set();
+                    const inputs = document.querySelectorAll(
+                        `input[name="${groupName}"]`,
+                    );
+                    inputs.forEach((input) => {
+                        input.checked = selected.has(input.value);
+                    });
+                    syncCheckboxGroupState(groupName);
+                });
+            }
+
+            function setFormData(data) {
+                setTextValues(data);
+                setRadioValues(data);
+                setCheckboxValues(data);
+            }
+
+            function clearForm() {
+                TEXT_FIELDS.forEach((id) => {
+                    const element = document.getElementById(id);
+                    if (element) element.value = "";
+                });
+
+                RADIO_GROUPS.forEach((groupName) => {
+                    document
+                        .querySelectorAll(`input[name="${groupName}"]`)
+                        .forEach((input) => {
+                            input.checked = false;
+                        });
+                });
+
+                Object.keys(CHECKBOX_GROUPS).forEach((groupName) => {
+                    document
+                        .querySelectorAll(`input[name="${groupName}"]`)
+                        .forEach((input) => {
+                            input.checked = false;
+                            input.disabled = false;
+                        });
+                });
+            }
+
+            function saveDraft(showMessage = false) {
+                localStorage.setItem(
+                    STORAGE_KEY,
+                    JSON.stringify(getFormData()),
+                );
+                if (showMessage) showToast("Draft saved.");
+            }
+
+            function syncCheckboxGroupState(groupName) {
+                const config = CHECKBOX_GROUPS[groupName];
+                const inputs = [
+                    ...document.querySelectorAll(`input[name="${groupName}"]`),
+                ];
+                const checkedInputs = inputs.filter((input) => input.checked);
+
+                if (groupName === "q_sdgs") {
+                    const noneInput = inputs.find(
+                        (input) => input.value === "None",
+                    );
+                    if (noneInput && noneInput.checked) {
+                        inputs.forEach((input) => {
+                            if (input.value !== "None") input.checked = false;
+                        });
+                    } else if (noneInput) {
+                        noneInput.disabled = checkedInputs.some(
+                            (input) => input.value !== "None",
+                        );
+                    }
+
+                    if (
+                        !checkedInputs.some((input) => input.value !== "None")
+                    ) {
+                        inputs.forEach((input) => {
+                            if (input.value !== "None") input.disabled = false;
+                        });
+                    }
+
+                    return;
+                }
+
+                if (!config.max) return;
+
+                const reachedMax = checkedInputs.length >= config.max;
+                inputs.forEach((input) => {
+                    input.disabled = reachedMax && !input.checked;
+                });
+            }
+
+            function handleCheckboxLimit(event) {
+                const input = event.target;
+                if (input.type !== "checkbox") return;
+
+                const groupName = input.name;
+                const config = CHECKBOX_GROUPS[groupName];
+                if (!config) return;
+
+                if (groupName === "q_sdgs") {
+                    if (input.value === "None" && input.checked) {
+                        document
+                            .querySelectorAll('input[name="q_sdgs"]')
+                            .forEach((item) => {
+                                if (item !== input) item.checked = false;
+                            });
+                    } else if (input.value !== "None" && input.checked) {
+                        const noneInput = document.querySelector(
+                            'input[name="q_sdgs"][value="None"]',
+                        );
+                        if (noneInput) noneInput.checked = false;
+                    }
+
+                    syncCheckboxGroupState(groupName);
+                    saveDraft();
+                    return;
+                }
+
+                const checked = getCheckboxValues(groupName);
+                if (config.max && checked.length > config.max) {
+                    input.checked = false;
+                    showToast(
+                        `You can only select ${config.max} options here.`,
+                    );
+                }
+
+                syncCheckboxGroupState(groupName);
+                saveDraft();
+            }
+
+            form.addEventListener("input", (event) => {
+                const target = event.target;
+                if (
+                    target.matches(
+                        'input[type="text"], input[type="email"], input[type="tel"], textarea, select',
+                    )
+                ) {
+                    saveDraft();
+                }
+            });
+
+            form.addEventListener("change", (event) => {
+                const target = event.target;
+
+                if (target.type === "radio") {
+                    saveDraft();
+                    return;
+                }
+
+                if (target.type === "checkbox") {
+                    handleCheckboxLimit(event);
+                    return;
+                }
+
+                if (target.tagName === "SELECT") {
+                    saveDraft();
+                }
+            });
+
+            const savedDraft = localStorage.getItem(STORAGE_KEY);
+            if (savedDraft) {
+                try {
+                    setFormData(JSON.parse(savedDraft));
+                } catch (error) {
+                    showToast("Saved draft could not be restored.");
+                }
+            } else {
+                Object.keys(CHECKBOX_GROUPS).forEach(syncCheckboxGroupState);
+            }
+
+            document
+                .getElementById("saveDraftBtn")
+                .addEventListener("click", () => {
+                    saveDraft(true);
+                });
+
+            document
+                .getElementById("clearBtn")
+                .addEventListener("click", () => {
+                    if (
+                        !confirm("Clear all fields and remove the saved draft?")
+                    )
+                        return;
+                    clearForm();
+                    localStorage.removeItem(STORAGE_KEY);
+                    Object.keys(CHECKBOX_GROUPS).forEach(
+                        syncCheckboxGroupState,
+                    );
+                    showToast("Form cleared.");
+                });
+
+            function sanitizedFileSegment(value, fallback) {
+                return (
+                    (value || fallback)
+                        .toLowerCase()
+                        .trim()
+                        .replace(/[^a-z0-9]+/g, "-")
+                        .replace(/^-+|-+$/g, "") || fallback
+                );
+            }
+
+            function downloadBlob(blob, filename) {
+                const url = URL.createObjectURL(blob);
+                const anchor = document.createElement("a");
+                anchor.href = url;
+                anchor.download = filename;
+                anchor.click();
+                URL.revokeObjectURL(url);
+            }
+
+            document
+                .getElementById("exportJsonBtn")
+                .addEventListener("click", () => {
+                    const data = getFormData();
+                    const student = sanitizedFileSegment(
+                        data.pi_student,
+                        "student",
+                    );
+                    const term = sanitizedFileSegment(data.pi_term, "term");
+                    downloadBlob(
+                        new Blob([JSON.stringify(data, null, 2)], {
+                            type: "application/json",
+                        }),
+                        `uw-end-term-${student}-${term}.json`,
+                    );
+                    showToast("JSON exported.");
+                });
+
+            document
+                .getElementById("importJsonBtn")
+                .addEventListener("click", () => {
+                    importFileInput.click();
+                });
+
+            importFileInput.addEventListener("change", function () {
+                const file = this.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        clearForm();
+                        setFormData(data);
+                        saveDraft();
+                        showToast("JSON imported.");
+                    } catch (error) {
+                        showToast("Invalid JSON file.");
+                    }
+                };
+
+                reader.readAsText(file);
+                this.value = "";
+            });
+
+            function markdownValue(value, fallback = "_(not provided)_") {
+                return value && String(value).trim()
+                    ? String(value).trim()
+                    : fallback;
+            }
+
+            function markdownList(values, fallback = "_(none selected)_") {
+                return values && values.length
+                    ? values.map((value) => `- ${value}`).join("\n")
+                    : fallback;
+            }
+
+            document
+                .getElementById("exportMdBtn")
+                .addEventListener("click", () => {
+                    const data = getFormData();
+                    const competencyMarkdown = COMPETENCY_SECTIONS.map(
+                        (section) => {
+                            const items = section.items
+                                .map((item, index) => {
+                                    const key = `${section.id}_${index}`;
+                                    return `- ${item}: ${markdownValue(data[key], "_(not rated)_")}`;
+                                })
+                                .join("\n");
+
+                            return `### ${section.title}\n\n${items}`;
+                        },
+                    ).join("\n\n");
+
+                    const md = `# UW Co-op Employer End-of-Term Evaluation
+
+## Placement Information
+
+- Student Name: ${markdownValue(data.pi_student)}
+- Student ID: ${markdownValue(data.pi_student_id)}
+- Organization: ${markdownValue(data.pi_org)}
+- Division / Department: ${markdownValue(data.pi_division)}
+- Job Title: ${markdownValue(data.pi_job_title)}
+- Work Term: ${markdownValue(data.pi_term)}
+- Supervisor: ${markdownValue(data.pi_supervisor)}
+- Supervisor Email: ${markdownValue(data.pi_supervisor_email)}
+
+## Your Information
+
+- Name: ${markdownValue(data.q_your_name)}
+- Title: ${markdownValue(data.q_your_title)}
+- Email: ${markdownValue(data.q_your_email)}
+- Phone: ${markdownValue(data.q_your_phone)}
+
+## Rating Details
+
+${competencyMarkdown}
+
+## Top 3 Areas of Strength
+
+${markdownList(data.q_strengths)}
+
+### Additional Comments
+
+${markdownValue(data.q_strength_comments)}
+
+## Top 3 Areas for Development
+
+${markdownList(data.q_developments)}
+
+### Additional Comments
+
+${markdownValue(data.q_development_comments)}
+
+## United Nations' Sustainable Development Goals
+
+${markdownList(data.q_sdgs)}
+
+## Overall Evaluation
+
+- Overall Performance Rating: ${markdownValue(data.q_overall_rating, "_(not selected)_")}
+- Reviewed Completed Evaluation With Student: ${markdownValue(data.q_reviewed_with_student, "_(not selected)_")}
+
+### Supervisor's Comments
+
+${markdownValue(data.q_supervisor_comments)}
+
+### Supervisor's Recommendations
+
+${markdownValue(data.q_supervisor_recommendations)}
+
+## Student Comments
+
+${markdownValue(data.q_student_comments)}
+
+## Future Employment Potential
+
+- Would You Like the Student to Return Next Work Term: ${markdownValue(data.q_return_next_term, "_(not selected)_")}
+`;
+
+                    const student = sanitizedFileSegment(
+                        data.pi_student,
+                        "student",
+                    );
+                    const term = sanitizedFileSegment(data.pi_term, "term");
+
+                    downloadBlob(
+                        new Blob([md], { type: "text/markdown" }),
+                        `uw-end-term-${student}-${term}.md`,
+                    );
+                    showToast("Markdown exported.");
+                });
+        </script>
+    </body>
+</html>
