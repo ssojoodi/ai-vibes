@@ -199,6 +199,40 @@ a {
   color: var(--text-muted);
 }
 
+.info-card--collapsible {
+  padding: 0;
+  overflow: hidden;
+}
+
+.info-card__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0;
+  padding: 1.1rem 1.5rem;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.info-card__summary::-webkit-details-marker {
+  display: none;
+}
+
+.info-card__summary::after {
+  content: "▸";
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+.info-card--collapsible[open] .info-card__summary::after {
+  transform: rotate(90deg);
+}
+
+.info-card__content {
+  padding: 0 1.5rem 1.25rem;
+}
+
 .placement-grid,
 .fields-grid,
 .checkbox-grid {
@@ -306,13 +340,20 @@ a {
 .field select {
   cursor: pointer;
   appearance: none;
+  line-height: 1.2;
+  vertical-align: top;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
+  padding-top: 0.35rem;
+  padding-bottom: 0.75rem;
   padding-right: 2.25rem;
 }
 
 .field select option {
+  vertical-align: top;
+  line-height: 1.2;
+  padding: 0.2rem 0.5rem;
   color: var(--text);
   background: var(--surface);
 }
@@ -523,6 +564,14 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.page-disclaimer {
+  margin-top: 0.9rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  opacity: 0.9;
 }
 
 #importFileInput {

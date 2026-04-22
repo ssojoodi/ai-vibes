@@ -4,11 +4,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UW Co-op Employer eCheckIn</title>
+  <title>UW Co-op Employer Mid-term Check-in Forms</title>
+  <meta name="description" content="UW Co-op Employer mid-term eCheckIn form for student performance and employer feedback.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="UW Co-op Employer Forms">
+  <meta property="og:title" content="UW Co-op Employer eCheckIn">
+  <meta property="og:description" content="Mid-term employer check-in form for University of Waterloo co-op placements.">
+  <meta property="og:image" content="favicon.svg">
+  <meta property="og:image:type" content="image/svg+xml">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="UW Co-op Employer eCheckIn">
+  <meta name="twitter:description" content="Mid-term employer check-in form for University of Waterloo co-op placements.">
+  <meta name="twitter:image" content="favicon.svg">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="common.css">
 </head>
 
-<body>
+<body data-form-type="mid-term">
 
   <div class="page-wrap">
 
@@ -16,7 +28,6 @@
     <header class="page-header">
       <div class="page-header__left">
         <h1>UW Co-op · Employer eCheckIn</h1>
-        <p>University of Waterloo · WaterlooWorks</p>
       </div>
       <div class="header-actions">
         <button class="btn btn-ghost btn-icon" id="themeToggle" title="Toggle dark/light mode"
@@ -177,6 +188,9 @@
         <button class="btn btn-outline" id="exportMdBtn" title="Export Markdown and save to disk">📄 Export MD</button>
       </div>
     </div>
+    <p class="page-disclaimer">
+      This is a convenience tool and is not formally sanctioned by the University of Waterloo.
+    </p>
 
   </div><!-- /page-wrap -->
 
@@ -186,210 +200,7 @@
   <!-- Toast notification -->
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script>
-    // ── Theme ──────────────────────────────────────────────────────────────────
-    const html = document.documentElement;
-    const themeBtn = document.getElementById('themeToggle');
-
-    function applyTheme(theme) {
-      html.dataset.theme = theme;
-      themeBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
-      localStorage.setItem('uw_theme', theme);
-    }
-
-    themeBtn.addEventListener('click', () => {
-      applyTheme(html.dataset.theme === 'dark' ? 'light' : 'dark');
-    });
-
-    const savedTheme = localStorage.getItem('uw_theme') || 'light';
-    applyTheme(savedTheme);
-
-    // ── Toast ──────────────────────────────────────────────────────────────────
-    let toastTimer;
-    function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
-    }
-
-    // ── Field IDs ──────────────────────────────────────────────────────────────
-    const FIELDS = [
-      'pi_student', 'pi_student_id', 'pi_org', 'pi_division',
-      'pi_job_title', 'pi_term', 'pi_supervisor', 'pi_supervisor_email',
-      'q_your_name', 'q_your_email', 'q_your_phone',
-      'q_expectations', 'q_eem_questions',
-      'q_strength', 'q_strength_comments',
-      'q_development', 'q_development_comments'
-    ];
-
-    function getFormData() {
-      const data = {};
-      FIELDS.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) data[id] = el.value;
-      });
-      return data;
-    }
-
-    function setFormData(data) {
-      FIELDS.forEach(id => {
-        const el = document.getElementById(id);
-        if (el && data[id] !== undefined) el.value = data[id];
-      });
-    }
-
-    function clearForm() {
-      FIELDS.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = '';
-      });
-    }
-
-    // ── Persist to localStorage on every input ────────────────────────────────
-    FIELDS.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener('input', () => {
-        localStorage.setItem('uw_draft', JSON.stringify(getFormData()));
-      });
-    });
-
-    // Restore on page load
-    const saved = localStorage.getItem('uw_draft');
-    if (saved) {
-      try { setFormData(JSON.parse(saved)); } catch (e) { }
-    }
-
-    // ── Save Draft ────────────────────────────────────────────────────────────
-    document.getElementById('saveDraftBtn').addEventListener('click', () => {
-      localStorage.setItem('uw_draft', JSON.stringify(getFormData()));
-      showToast('Draft saved.');
-    });
-
-    document.getElementById('clearBtn').addEventListener('click', () => {
-      if (confirm('Clear all fields?')) {
-        clearForm();
-        localStorage.removeItem('uw_draft');
-        showToast('Form cleared.');
-      }
-    });
-
-    // ── Export JSON ───────────────────────────────────────────────────────────
-    document.getElementById('exportJsonBtn').addEventListener('click', () => {
-      const data = getFormData();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      const student = data.pi_student ? data.pi_student.replace(/\s+/g, '-') : 'student';
-      const term = data.pi_term ? data.pi_term.replace(/\s+/g, '-') : 'term';
-      a.download = `uw-checkin-${student}-${term}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast('JSON exported.');
-    });
-
-    // ── Import JSON ───────────────────────────────────────────────────────────
-    document.getElementById('importJsonBtn').addEventListener('click', () => {
-      document.getElementById('importFileInput').click();
-    });
-
-    document.getElementById('importFileInput').addEventListener('change', function () {
-      const file = this.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = e => {
-        try {
-          const data = JSON.parse(e.target.result);
-          setFormData(data);
-          localStorage.setItem('uw_draft_autosave', JSON.stringify(getFormData()));
-          showToast('JSON imported.');
-        } catch (err) {
-          showToast('Invalid JSON file.');
-        }
-      };
-      reader.readAsText(file);
-      this.value = '';
-    });
-
-    // ── Export Markdown ───────────────────────────────────────────────────────
-    document.getElementById('exportMdBtn').addEventListener('click', () => {
-      const d = getFormData();
-
-      const val = (id) => d[id] || '_(not provided)_';
-      const opt = (id) => d[id] || '_(not answered)_';
-
-      const md = `# UW Co-op Employer eCheckIn
-
-## Placement Information
-
-| Field | Value |
-|---|---|
-| Student Name | ${val('pi_student')} |
-| Student ID | ${val('pi_student_id')} |
-| Organization | ${val('pi_org')} |
-| Division | ${val('pi_division')} |
-| Job Title | ${val('pi_job_title')} |
-| Term | ${val('pi_term')} |
-| Supervisor | ${val('pi_supervisor')} |
-| Supervisor Email | ${val('pi_supervisor_email')} |
-
----
-
-## Your Information
-
-| Field | Value |
-|---|---|
-| Name | ${val('q_your_name')} |
-| Email | ${val('q_your_email')} |
-| Phone | ${val('q_your_phone')} |
-
----
-
-## Your Feedback - Required
-
-**Q: Overall, how is the student meeting your expectations with respect to their job performance and conduct at work? (Please note that your Employer Experience Manager will follow up with you if the student is not meeting expectations).**
-
-${opt('q_expectations')}
-
-**Q: Do you have any other questions or concerns that you would like to talk about with your Employer Experience Manager (eg. funding, events, hiring strategy, engagement at UW beyond co-op, etc.)?**
-
-${opt('q_eem_questions')}
-
----
-
-## Your Feedback - Optional
-
-**Top area of strength:**
-
-${opt('q_strength')}
-
-**Additional comments on area of strength:**
-
-${d['q_strength_comments'] ? d['q_strength_comments'] : '_(not provided)_'}
-
-**Area for development:**
-
-${opt('q_development')}
-
-**Additional comments on area for development:**
-
-${d['q_development_comments'] ? d['q_development_comments'] : '_(not provided)_'}
-`;
-
-      const blob = new Blob([md], { type: 'text/markdown' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      const student = d.pi_student ? d.pi_student.replace(/\s+/g, '-') : 'student';
-      const term = d.pi_term ? d.pi_term.replace(/\s+/g, '-') : 'term';
-      a.download = `uw-checkin-${student}-${term}.md`;
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast('Markdown exported.');
-    });
-  </script>
+  <script src="forms.js"></script>
 </body>
 
 </html>
