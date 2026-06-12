@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>4-Point Image Compositor</title>
+  <link rel="icon" type="image/png" href="../img/integral-logo-2020.png">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fa;
+      --panel: #ffffff;
+      --ink: #17202a;
+      --muted: #627084;
+      --line: #d8dee8;
+      --accent: #0f766e;
+      --accent-strong: #0b5f59;
+      --danger: #b42318;
+      --shadow: 0 10px 28px rgba(20, 32, 50, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+    }
+
+    main {
+      width: min(1280px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 28px 0 40px;
+    }
+
+    h1 {
+      margin: 0 0 18px;
+      font-size: clamp(1.5rem, 2.4vw, 2rem);
+      font-weight: 720;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 680;
+      letter-spacing: 0;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(280px, 0.82fr) minmax(320px, 1.18fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .uploads {
+      display: grid;
+      gap: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    label,
+    .meta {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 560;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px;
+      background: #fbfcfe;
+      color: var(--ink);
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .image-preview {
+      display: grid;
+      place-items: center;
+      min-height: 170px;
+      border: 1px dashed #b6c0cf;
+      border-radius: 8px;
+      background: #f8fafc;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 0.92rem;
+      text-align: center;
+    }
+
+    .image-preview img {
+      display: block;
+      max-width: 100%;
+      max-height: 260px;
+      object-fit: contain;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #ffffff;
+      color: var(--ink);
+      min-height: 38px;
+      padding: 0 12px;
+      font: inherit;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    button.primary {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    button:hover:not(:disabled) {
+      border-color: var(--accent-strong);
+    }
+
+    button.primary:hover:not(:disabled) {
+      background: var(--accent-strong);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .point-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin: 0 0 12px;
+    }
+
+    .point-chip {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px 6px;
+      background: #fbfcfe;
+      color: var(--muted);
+      font-size: 0.82rem;
+      text-align: center;
+      min-width: 0;
+    }
+
+    .point-chip.done {
+      border-color: rgba(15, 118, 110, 0.45);
+      background: #ecfdf5;
+      color: var(--accent-strong);
+    }
+
+    .canvas-wrap {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: 260px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(45deg, #eef2f7 25%, transparent 25%),
+        linear-gradient(-45deg, #eef2f7 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #eef2f7 75%),
+        linear-gradient(-45deg, transparent 75%, #eef2f7 75%);
+      background-size: 22px 22px;
+      background-position: 0 0, 0 11px, 11px -11px, -11px 0;
+      overflow: auto;
+    }
+
+    canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+
+    #pointCanvas {
+      cursor: crosshair;
+      background: #ffffff;
+    }
+
+    #resultCanvas {
+      background: #ffffff;
+    }
+
+    .status {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      min-height: 1.3em;
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .result-panel {
+      margin-top: 18px;
+    }
+
+    .result-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 860px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-grid,
+      .point-strip {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>4-Point Image Compositor</h1>
+
+    <section class="workspace">
+      <div class="panel uploads">
+        <div class="field">
+          <label for="topImageInput">Image to place</label>
+          <input id="topImageInput" type="file" accept="image/*">
+        </div>
+
+        <div class="field">
+          <label for="baseImageInput">Background image</label>
+          <input id="baseImageInput" type="file" accept="image/*">
+        </div>
+
+        <div class="preview-grid">
+          <div class="image-preview" id="topPreview">First image</div>
+          <div class="image-preview" id="basePreview">Second image</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="toolbar">
+          <h2>Destination points</h2>
+          <div class="button-row">
+            <button id="resetPointsButton" type="button">Reset</button>
+            <button id="renderButton" class="primary" type="button" disabled>Render</button>
+          </div>
+        </div>
+
+        <div class="point-strip" id="pointStrip" aria-live="polite"></div>
+
+        <div class="canvas-wrap">
+          <canvas id="pointCanvas" width="720" height="420"></canvas>
+        </div>
+        <div id="status" class="status">Upload both images, then click TL, TR, BR, BL on the background.</div>
+      </div>
+    </section>
+
+    <section class="panel result-panel">
+      <div class="result-head">
+        <h2>Combined image</h2>
+        <button id="downloadButton" type="button" disabled>Download PNG</button>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="resultCanvas" width="960" height="540"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const topInput = document.getElementById('topImageInput');
+    const baseInput = document.getElementById('baseImageInput');
+    const topPreview = document.getElementById('topPreview');
+    const basePreview = document.getElementById('basePreview');
+    const pointCanvas = document.getElementById('pointCanvas');
+    const pointCtx = pointCanvas.getContext('2d');
+    const resultCanvas = document.getElementById('resultCanvas');
+    const resultCtx = resultCanvas.getContext('2d');
+    const resetButton = document.getElementById('resetPointsButton');
+    const renderButton = document.getElementById('renderButton');
+    const downloadButton = document.getElementById('downloadButton');
+    const pointStrip = document.getElementById('pointStrip');
+    const statusEl = document.getElementById('status');
+
+    const pointLabels = ['TL', 'TR', 'BR', 'BL'];
+    const state = {
+      topImage: null,
+      baseImage: null,
+      topUrl: '',
+      baseUrl: '',
+      previewScale: 1,
+      points: [],
+      draggingIndex: -1
+    };
+
+    function setStatus(message, isError = false) {
+      statusEl.textContent = message;
+      statusEl.classList.toggle('error', isError);
+    }
+
+    function setPreview(container, image, fallback) {
+      container.textContent = '';
+      if (!image) {
+        container.textContent = fallback;
+        return;
+      }
+      const img = document.createElement('img');
+      img.src = image.src;
+      img.alt = fallback;
+      container.appendChild(img);
+    }
+
+    function readImageFile(file) {
+      return new Promise((resolve, reject) => {
+        if (!file) {
+          resolve({ image: null, url: '' });
+          return;
+        }
+
+        const url = URL.createObjectURL(file);
+        const image = new Image();
+        image.onload = () => resolve({ image, url });
+        image.onerror = () => {
+          URL.revokeObjectURL(url);
+          reject(new Error('Could not load that image file.'));
+        };
+        image.src = url;
+      });
+    }
+
+    async function handleTopFile(event) {
+      try {
+        const { image, url } = await readImageFile(event.target.files[0]);
+        if (state.topUrl) URL.revokeObjectURL(state.topUrl);
+        state.topImage = image;
+        state.topUrl = url;
+        setPreview(topPreview, image, 'First image');
+        updateControls();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    async function handleBaseFile(event) {
+      try {
+        const { image, url } = await readImageFile(event.target.files[0]);
+        if (state.baseUrl) URL.revokeObjectURL(state.baseUrl);
+        state.baseImage = image;
+        state.baseUrl = url;
+        state.points = [];
+        setPreview(basePreview, image, 'Second image');
+        configurePointCanvas();
+        drawPointCanvas();
+        updateControls();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    function configurePointCanvas() {
+      if (!state.baseImage) {
+        pointCanvas.width = 720;
+        pointCanvas.height = 420;
+        state.previewScale = 1;
+        return;
+      }
+
+      const maxWidth = Math.min(760, Math.max(320, pointCanvas.parentElement.clientWidth - 26));
+      state.previewScale = Math.min(1, maxWidth / state.baseImage.naturalWidth);
+      pointCanvas.width = Math.max(1, Math.round(state.baseImage.naturalWidth * state.previewScale));
+      pointCanvas.height = Math.max(1, Math.round(state.baseImage.naturalHeight * state.previewScale));
+    }
+
+    function pointToPreview(point) {
+      return {
+        x: point.x * state.previewScale,
+        y: point.y * state.previewScale
+      };
+    }
+
+    function pointFromEvent(event) {
+      const rect = pointCanvas.getBoundingClientRect();
+      const x = (event.clientX - rect.left) * (pointCanvas.width / rect.width);
+      const y = (event.clientY - rect.top) * (pointCanvas.height / rect.height);
+      return {
+        x: Math.max(0, Math.min(pointCanvas.width, x)) / state.previewScale,
+        y: Math.max(0, Math.min(pointCanvas.height, y)) / state.previewScale
+      };
+    }
+
+    function drawPointCanvas() {
+      pointCtx.clearRect(0, 0, pointCanvas.width, pointCanvas.height);
+
+      if (!state.baseImage) {
+        pointCtx.fillStyle = '#f8fafc';
+        pointCtx.fillRect(0, 0, pointCanvas.width, pointCanvas.height);
+        pointCtx.fillStyle = '#627084';
+        pointCtx.font = '16px system-ui, sans-serif';
+        pointCtx.textAlign = 'center';
+        pointCtx.fillText('Background image', pointCanvas.width / 2, pointCanvas.height / 2);
+        return;
+      }
+
+      pointCtx.drawImage(state.baseImage, 0, 0, pointCanvas.width, pointCanvas.height);
+
+      if (state.points.length > 1) {
+        pointCtx.save();
+        pointCtx.lineWidth = 2;
+        pointCtx.strokeStyle = '#14b8a6';
+        pointCtx.fillStyle = 'rgba(20, 184, 166, 0.16)';
+        pointCtx.beginPath();
+        state.points.forEach((point, index) => {
+          const previewPoint = pointToPreview(point);
+          if (index === 0) pointCtx.moveTo(previewPoint.x, previewPoint.y);
+          else pointCtx.lineTo(previewPoint.x, previewPoint.y);
+        });
+        if (state.points.length === 4) pointCtx.closePath();
+        pointCtx.fill();
+        pointCtx.stroke();
+        pointCtx.restore();
+      }
+
+      state.points.forEach((point, index) => {
+        const previewPoint = pointToPreview(point);
+        pointCtx.save();
+        pointCtx.beginPath();
+        pointCtx.arc(previewPoint.x, previewPoint.y, 9, 0, Math.PI * 2);
+        pointCtx.fillStyle = '#ffffff';
+        pointCtx.fill();
+        pointCtx.lineWidth = 3;
+        pointCtx.strokeStyle = '#0f766e';
+        pointCtx.stroke();
+        pointCtx.fillStyle = '#0b5f59';
+        pointCtx.font = '700 11px system-ui, sans-serif';
+        pointCtx.textAlign = 'center';
+        pointCtx.textBaseline = 'middle';
+        pointCtx.fillText(String(index + 1), previewPoint.x, previewPoint.y + 0.5);
+        pointCtx.restore();
+      });
+    }
+
+    function renderPointStrip() {
+      pointStrip.innerHTML = '';
+      pointLabels.forEach((label, index) => {
+        const chip = document.createElement('div');
+        chip.className = 'point-chip' + (state.points[index] ? ' done' : '');
+        const point = state.points[index];
+        chip.textContent = point
+          ? `${index + 1} ${label}: ${Math.round(point.x)}, ${Math.round(point.y)}`
+          : `${index + 1} ${label}`;
+        pointStrip.appendChild(chip);
+      });
+    }
+
+    function updateControls() {
+      renderPointStrip();
+      const ready = Boolean(state.topImage && state.baseImage && state.points.length === 4);
+      renderButton.disabled = !ready;
+      if (ready) {
+        setStatus('Ready to render. Drag any point to adjust placement.');
+      } else if (!state.topImage || !state.baseImage) {
+        setStatus('Upload both images, then click TL, TR, BR, BL on the background.');
+      } else {
+        setStatus(`Choose ${4 - state.points.length} more point${4 - state.points.length === 1 ? '' : 's'}.`);
+      }
+    }
+
+    function nearestPointIndex(event) {
+      if (!state.baseImage) return -1;
+      const eventPoint = pointFromEvent(event);
+      const hitRadius = 14 / state.previewScale;
+      let bestIndex = -1;
+      let bestDistance = Infinity;
+
+      state.points.forEach((point, index) => {
+        const distance = Math.hypot(point.x - eventPoint.x, point.y - eventPoint.y);
+        if (distance < hitRadius && distance < bestDistance) {
+          bestIndex = index;
+          bestDistance = distance;
+        }
+      });
+
+      return bestIndex;
+    }
+
+    function handlePointerDown(event) {
+      if (!state.baseImage) return;
+
+      pointCanvas.setPointerCapture(event.pointerId);
+      const hitIndex = nearestPointIndex(event);
+      if (hitIndex >= 0) {
+        state.draggingIndex = hitIndex;
+        return;
+      }
+
+      if (state.points.length < 4) {
+        state.points.push(pointFromEvent(event));
+        state.draggingIndex = state.points.length - 1;
+        drawPointCanvas();
+        updateControls();
+      }
+    }
+
+    function handlePointerMove(event) {
+      if (state.draggingIndex < 0) return;
+      state.points[state.draggingIndex] = pointFromEvent(event);
+      drawPointCanvas();
+      updateControls();
+    }
+
+    function handlePointerUp(event) {
+      if (state.draggingIndex >= 0) {
+        state.draggingIndex = -1;
+        if (pointCanvas.hasPointerCapture(event.pointerId)) {
+          pointCanvas.releasePointerCapture(event.pointerId);
+        }
+      }
+    }
+
+    function resetPoints() {
+      state.points = [];
+      state.draggingIndex = -1;
+      drawPointCanvas();
+      updateControls();
+    }
+
+    function solveLinearSystem(matrix, vector) {
+      const n = vector.length;
+      const a = matrix.map((row, index) => row.concat(vector[index]));
+
+      for (let column = 0; column < n; column += 1) {
+        let pivotRow = column;
+        for (let row = column + 1; row < n; row += 1) {
+          if (Math.abs(a[row][column]) > Math.abs(a[pivotRow][column])) {
+            pivotRow = row;
+          }
+        }
+
+        if (Math.abs(a[pivotRow][column]) < 1e-12) {
+          throw new Error('The selected points are too close together.');
+        }
+
+        [a[column], a[pivotRow]] = [a[pivotRow], a[column]];
+
+        const pivot = a[column][column];
+        for (let col = column; col <= n; col += 1) {
+          a[column][col] /= pivot;
+        }
+
+        for (let row = 0; row < n; row += 1) {
+          if (row === column) continue;
+          const factor = a[row][column];
+          for (let col = column; col <= n; col += 1) {
+            a[row][col] -= factor * a[column][col];
+          }
+        }
+      }
+
+      return a.map(row => row[n]);
+    }
+
+    function createHomography(points) {
+      const source = [
+        [0, 0],
+        [1, 0],
+        [1, 1],
+        [0, 1]
+      ];
+      const matrix = [];
+      const vector = [];
+
+      points.forEach((point, index) => {
+        const [u, v] = source[index];
+        matrix.push([u, v, 1, 0, 0, 0, -u * point.x, -v * point.x]);
+        vector.push(point.x);
+        matrix.push([0, 0, 0, u, v, 1, -u * point.y, -v * point.y]);
+        vector.push(point.y);
+      });
+
+      const h = solveLinearSystem(matrix, vector);
+      return [h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7], 1];
+    }
+
+    function mapPoint(h, u, v) {
+      const denominator = h[6] * u + h[7] * v + h[8];
+      return {
+        x: (h[0] * u + h[1] * v + h[2]) / denominator,
+        y: (h[3] * u + h[4] * v + h[5]) / denominator
+      };
+    }
+
+    function applyTriangleTransform(ctx, src, dst) {
+      const x0 = src[0].x;
+      const y0 = src[0].y;
+      const x1 = src[1].x;
+      const y1 = src[1].y;
+      const x2 = src[2].x;
+      const y2 = src[2].y;
+      const X0 = dst[0].x;
+      const Y0 = dst[0].y;
+      const X1 = dst[1].x;
+      const Y1 = dst[1].y;
+      const X2 = dst[2].x;
+      const Y2 = dst[2].y;
+      const denominator = x0 * (y1 - y2) + x1 * (y2 - y0) + x2 * (y0 - y1);
+
+      if (Math.abs(denominator) < 1e-9) return false;
+
+      const a = (X0 * (y1 - y2) + X1 * (y2 - y0) + X2 * (y0 - y1)) / denominator;
+      const c = (X0 * (x2 - x1) + X1 * (x0 - x2) + X2 * (x1 - x0)) / denominator;
+      const e = (X0 * (x1 * y2 - x2 * y1) + X1 * (x2 * y0 - x0 * y2) + X2 * (x0 * y1 - x1 * y0)) / denominator;
+      const b = (Y0 * (y1 - y2) + Y1 * (y2 - y0) + Y2 * (y0 - y1)) / denominator;
+      const d = (Y0 * (x2 - x1) + Y1 * (x0 - x2) + Y2 * (x1 - x0)) / denominator;
+      const f = (Y0 * (x1 * y2 - x2 * y1) + Y1 * (x2 * y0 - x0 * y2) + Y2 * (x0 * y1 - x1 * y0)) / denominator;
+
+      ctx.transform(a, b, c, d, e, f);
+      return true;
+    }
+
+    function drawWarpedImage(ctx, image, points) {
+      const h = createHomography(points);
+      const columns = 36;
+      const rows = Math.max(8, Math.round(columns * image.naturalHeight / image.naturalWidth));
+      const epsilon = 0.7;
+
+      ctx.save();
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+
+      for (let row = 0; row < rows; row += 1) {
+        for (let column = 0; column < columns; column += 1) {
+          const u0 = column / columns;
+          const v0 = row / rows;
+          const u1 = (column + 1) / columns;
+          const v1 = (row + 1) / rows;
+
+          const srcCell = [
+            { x: u0 * image.naturalWidth, y: v0 * image.naturalHeight },
+            { x: u1 * image.naturalWidth, y: v0 * image.naturalHeight },
+            { x: u1 * image.naturalWidth, y: v1 * image.naturalHeight },
+            { x: u0 * image.naturalWidth, y: v1 * image.naturalHeight }
+          ];
+          const dstCell = [
+            mapPoint(h, u0, v0),
+            mapPoint(h, u1, v0),
+            mapPoint(h, u1, v1),
+            mapPoint(h, u0, v1)
+          ];
+
+          drawWarpedTriangle(ctx, image, [srcCell[0], srcCell[1], srcCell[2]], [dstCell[0], dstCell[1], dstCell[2]], epsilon);
+          drawWarpedTriangle(ctx, image, [srcCell[0], srcCell[2], srcCell[3]], [dstCell[0], dstCell[2], dstCell[3]], epsilon);
+        }
+      }
+
+      ctx.restore();
+    }
+
+    function drawWarpedTriangle(ctx, image, srcTriangle, dstTriangle, epsilon) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(dstTriangle[0].x, dstTriangle[0].y);
+      ctx.lineTo(dstTriangle[1].x, dstTriangle[1].y);
+      ctx.lineTo(dstTriangle[2].x, dstTriangle[2].y);
+      ctx.closePath();
+      ctx.clip();
+
+      const expandedSrc = expandTriangle(srcTriangle, epsilon);
+      const expandedDst = expandTriangle(dstTriangle, epsilon);
+
+      if (applyTriangleTransform(ctx, expandedSrc, expandedDst)) {
+        ctx.drawImage(image, 0, 0);
+      }
+      ctx.restore();
+    }
+
+    function expandTriangle(triangle, amount) {
+      const center = {
+        x: (triangle[0].x + triangle[1].x + triangle[2].x) / 3,
+        y: (triangle[0].y + triangle[1].y + triangle[2].y) / 3
+      };
+
+      return triangle.map(point => {
+        const dx = point.x - center.x;
+        const dy = point.y - center.y;
+        const length = Math.hypot(dx, dy) || 1;
+        return {
+          x: point.x + (dx / length) * amount,
+          y: point.y + (dy / length) * amount
+        };
+      });
+    }
+
+    function renderComposite() {
+      if (!state.topImage || !state.baseImage || state.points.length !== 4) return;
+
+      try {
+        resultCanvas.width = state.baseImage.naturalWidth;
+        resultCanvas.height = state.baseImage.naturalHeight;
+        resultCtx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+        resultCtx.drawImage(state.baseImage, 0, 0);
+        drawWarpedImage(resultCtx, state.topImage, state.points);
+        downloadButton.disabled = false;
+        setStatus('Rendered.');
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    function downloadResult() {
+      if (downloadButton.disabled) return;
+      const link = document.createElement('a');
+      link.download = 'combined-image.png';
+      link.href = resultCanvas.toDataURL('image/png');
+      link.click();
+    }
+
+    function drawInitialResult() {
+      resultCtx.fillStyle = '#f8fafc';
+      resultCtx.fillRect(0, 0, resultCanvas.width, resultCanvas.height);
+      resultCtx.fillStyle = '#627084';
+      resultCtx.font = '18px system-ui, sans-serif';
+      resultCtx.textAlign = 'center';
+      resultCtx.fillText('Combined image', resultCanvas.width / 2, resultCanvas.height / 2);
+    }
+
+    topInput.addEventListener('change', handleTopFile);
+    baseInput.addEventListener('change', handleBaseFile);
+    pointCanvas.addEventListener('pointerdown', handlePointerDown);
+    pointCanvas.addEventListener('pointermove', handlePointerMove);
+    pointCanvas.addEventListener('pointerup', handlePointerUp);
+    pointCanvas.addEventListener('pointercancel', handlePointerUp);
+    resetButton.addEventListener('click', resetPoints);
+    renderButton.addEventListener('click', renderComposite);
+    downloadButton.addEventListener('click', downloadResult);
+    window.addEventListener('resize', () => {
+      const oldScale = state.previewScale;
+      configurePointCanvas();
+      if (state.previewScale !== oldScale) drawPointCanvas();
+    });
+
+    renderPointStrip();
+    drawPointCanvas();
+    drawInitialResult();
+    updateControls();
+  </script>
+</body>
+</html>
