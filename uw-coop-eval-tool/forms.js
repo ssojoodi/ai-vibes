@@ -49,6 +49,63 @@
         URL.revokeObjectURL(url);
     }
 
+    function isJsonFile(file) {
+        return (
+            file &&
+            (file.type === "application/json" ||
+                file.name.toLowerCase().endsWith(".json"))
+        );
+    }
+
+    function eventHasFiles(event) {
+        return [...(event.dataTransfer?.types || [])].includes("Files");
+    }
+
+    function setupJsonImport(importData) {
+        function importFile(file) {
+            if (!file) return;
+
+            if (!isJsonFile(file)) {
+                showToast("Please import a JSON file.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    importData(data);
+                    showToast("JSON imported.");
+                } catch (error) {
+                    showToast("Invalid JSON file.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        document
+            .getElementById("importJsonBtn")
+            ?.addEventListener("click", () => {
+                importFileInput?.click();
+            });
+
+        importFileInput?.addEventListener("change", function () {
+            importFile(this.files?.[0]);
+            this.value = "";
+        });
+
+        document.addEventListener("dragover", (event) => {
+            if (!eventHasFiles(event)) return;
+            event.preventDefault();
+        });
+
+        document.addEventListener("drop", (event) => {
+            if (!eventHasFiles(event)) return;
+            event.preventDefault();
+            importFile(event.dataTransfer.files?.[0]);
+        });
+    }
+
     function markdownValue(value, fallback = "_(not provided)_") {
         return value && String(value).trim()
             ? String(value).trim()
@@ -83,6 +140,7 @@
             "q_your_email",
             "q_your_phone",
             "q_expectations",
+            "q_expectations_comments",
             "q_eem_questions",
             "q_strength",
             "q_strength_comments",
@@ -169,29 +227,9 @@
                 showToast("JSON exported.");
             });
 
-        document
-            .getElementById("importJsonBtn")
-            ?.addEventListener("click", () => {
-                importFileInput?.click();
-            });
-
-        importFileInput?.addEventListener("change", function () {
-            const file = this.files?.[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    const data = JSON.parse(event.target.result);
-                    setFormData(data);
-                    saveDraft();
-                    showToast("JSON imported.");
-                } catch (error) {
-                    showToast("Invalid JSON file.");
-                }
-            };
-            reader.readAsText(file);
-            this.value = "";
+        setupJsonImport((data) => {
+            setFormData(data);
+            saveDraft();
         });
 
         document.getElementById("exportMdBtn")?.addEventListener("click", () => {
@@ -232,13 +270,17 @@
 
 ${opt("q_expectations")}
 
+**Comments (re: student job performance and conduct):**
+
+${data.q_expectations_comments || "_(not provided)_"}
+
 **Q: Do you have any other questions or concerns that you would like to talk about with your Employer Experience Manager (eg. funding, events, hiring strategy, engagement at UW beyond co-op, etc.)?**
 
 ${opt("q_eem_questions")}
 
 ---
 
-## Your Feedback - Optional
+## Additional Required Feedback
 
 **Top area of strength:**
 
@@ -639,31 +681,10 @@ ${data.q_development_comments || "_(not provided)_"}
                 showToast("JSON exported.");
             });
 
-        document
-            .getElementById("importJsonBtn")
-            ?.addEventListener("click", () => {
-                importFileInput?.click();
-            });
-
-        importFileInput?.addEventListener("change", function () {
-            const file = this.files?.[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    const data = JSON.parse(event.target.result);
-                    clearForm();
-                    setFormData(data);
-                    saveDraft();
-                    showToast("JSON imported.");
-                } catch (error) {
-                    showToast("Invalid JSON file.");
-                }
-            };
-
-            reader.readAsText(file);
-            this.value = "";
+        setupJsonImport((data) => {
+            clearForm();
+            setFormData(data);
+            saveDraft();
         });
 
         document.getElementById("exportMdBtn")?.addEventListener("click", () => {

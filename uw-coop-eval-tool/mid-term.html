@@ -83,6 +83,14 @@
         </div>
 
         <div class="field">
+          <label for="q_expectations_comments">
+            Comments (re: student job performance and conduct):
+          </label>
+          <textarea id="q_expectations_comments" rows="5"
+            placeholder="Add comments on the student's job performance and conduct."></textarea>
+        </div>
+
+        <div class="field">
           <label for="q_eem_questions">
             * Do you have any other questions or concerns that you would like to talk about with your Employer
             Experience Manager (eg. funding, events, hiring strategy, engagement at UW beyond co-op, etc.)?
@@ -97,18 +105,18 @@
       </div>
     </section>
 
-    <!-- ── Section 3: Optional Feedback ── -->
+    <!-- ── Section 3: Additional Required Feedback ── -->
     <section class="form-section">
       <div class="form-section__header">
-        <h2>Your Feedback - Optional</h2>
+        <h2>Additional Required Feedback</h2>
       </div>
       <div class="form-section__body">
 
         <div class="field">
           <label for="q_strength">
-            Based on the student's performance in the role to date, please select your student's top area of strength:
+            * Based on the student's performance in the role to date, please select your student's top area of strength:
           </label>
-          <select id="q_strength">
+          <select id="q_strength" required>
             <option value="">— select —</option>
             <option value="Discipline and context specific skills">Discipline and context specific skills</option>
             <option value="Information and data literacy">Information and data literacy</option>
@@ -130,17 +138,17 @@
 
         <div class="field">
           <label for="q_strength_comments">
-            Please provide any additional comments on your student's top area of strength:
+            * Please provide any additional comments on your student's top area of strength:
           </label>
-          <textarea id="q_strength_comments" rows="4"
-            placeholder="Optional — share any specific examples or context…"></textarea>
+          <textarea id="q_strength_comments" rows="4" required
+            placeholder="Share any specific examples or context."></textarea>
         </div>
 
         <div class="field">
           <label for="q_development">
-            Based on the student's performance in the role to date, please select an area for development:
+            * Based on the student's performance in the role to date, please select an area for development:
           </label>
-          <select id="q_development">
+          <select id="q_development" required>
             <option value="">— select —</option>
             <option value="Discipline and context specific skills">Discipline and context specific skills</option>
             <option value="Information and data literacy">Information and data literacy</option>
@@ -162,10 +170,10 @@
 
         <div class="field">
           <label for="q_development_comments">
-            Please provide any additional comments on your student's top area for development:
+            * Please provide any additional comments on your student's top area for development:
           </label>
-          <textarea id="q_development_comments" rows="4"
-            placeholder="Optional — share any specific examples or context…"></textarea>
+          <textarea id="q_development_comments" rows="4" required
+            placeholder="Share any specific examples or context."></textarea>
         </div>
 
       </div>
