@@ -418,6 +418,48 @@ ${data.q_development_comments || "_(not provided)_"}
         );
 
         const form = document.getElementById("evaluationForm");
+        const lowRatingModal = document.getElementById("lowRatingModal");
+        const lowRatingYesBtn = document.getElementById("lowRatingYesBtn");
+        const lowRatingNoBtn = document.getElementById("lowRatingNoBtn");
+        let pendingExport = null;
+
+        function hasLowRatings(data) {
+            return RADIO_GROUPS.some((groupName) =>
+                /^(1|2)\s-/.test(data[groupName] || ""),
+            );
+        }
+
+        function closeLowRatingModal() {
+            pendingExport = null;
+            lowRatingModal?.close();
+            document.getElementById("q_development_comments")?.focus();
+        }
+
+        function exportWithLowRatingCheck(exportAction) {
+            const data = getFormData();
+
+            if (!hasLowRatings(data)) {
+                exportAction(data);
+                return;
+            }
+
+            pendingExport = () => exportAction(data);
+            lowRatingModal?.showModal();
+        }
+
+        lowRatingYesBtn?.addEventListener("click", () => {
+            const exportAction = pendingExport;
+            pendingExport = null;
+            lowRatingModal?.close();
+            exportAction?.();
+        });
+
+        lowRatingNoBtn?.addEventListener("click", closeLowRatingModal);
+
+        lowRatingModal?.addEventListener("cancel", (event) => {
+            event.preventDefault();
+            closeLowRatingModal();
+        });
 
         function escapeHtml(value) {
             return String(value)
@@ -669,16 +711,23 @@ ${data.q_development_comments || "_(not provided)_"}
         document
             .getElementById("exportJsonBtn")
             ?.addEventListener("click", () => {
-                const data = getFormData();
-                const student = sanitizedFileSegment(data.pi_student, "student");
-                const term = sanitizedFileSegment(data.pi_term, "term");
-                downloadBlob(
-                    new Blob([JSON.stringify(data, null, 2)], {
-                        type: "application/json",
-                    }),
-                    `${datePrefix()}-uw-end-term-${student}-${term}.json`,
-                );
-                showToast("JSON exported.");
+                exportWithLowRatingCheck((data) => {
+                    const student = sanitizedFileSegment(
+                        data.pi_student,
+                        "student",
+                    );
+                    const supervisor = sanitizedFileSegment(
+                        data.q_your_name,
+                        "supervisor",
+                    );
+                    downloadBlob(
+                        new Blob([JSON.stringify(data, null, 2)], {
+                            type: "application/json",
+                        }),
+                        `${datePrefix()}-uw-end-term-${student}-${supervisor}.json`,
+                    );
+                    showToast("JSON exported.");
+                });
             });
 
         setupJsonImport((data) => {
@@ -688,19 +737,19 @@ ${data.q_development_comments || "_(not provided)_"}
         });
 
         document.getElementById("exportMdBtn")?.addEventListener("click", () => {
-            const data = getFormData();
-            const competencyMarkdown = COMPETENCY_SECTIONS.map((section) => {
-                const items = section.items
-                    .map((item, index) => {
-                        const key = `${section.id}_${index}`;
-                        return `- ${item}: ${markdownValue(data[key], "_(not rated)_")}`;
-                    })
-                    .join("\n");
+            exportWithLowRatingCheck((data) => {
+                const competencyMarkdown = COMPETENCY_SECTIONS.map((section) => {
+                    const items = section.items
+                        .map((item, index) => {
+                            const key = `${section.id}_${index}`;
+                            return `- ${item}: ${markdownValue(data[key], "_(not rated)_")}`;
+                        })
+                        .join("\n");
 
-                return `### ${section.title}\n\n${items}`;
-            }).join("\n\n");
+                    return `### ${section.title}\n\n${items}`;
+                }).join("\n\n");
 
-            const md = `# UW Co-op Employer End-of-Term Evaluation
+                const md = `# UW Co-op Employer End-of-Term Evaluation
 
 ## Placement Information
 
@@ -761,13 +810,14 @@ ${markdownValue(data.q_student_comments)}
 - Would You Like the Student to Return Next Work Term: ${markdownValue(data.q_return_next_term, "_(not selected)_")}
 `;
 
-            const student = sanitizedFileSegment(data.pi_student, "student");
-            const term = sanitizedFileSegment(data.pi_term, "term");
-            downloadBlob(
-                new Blob([md], { type: "text/markdown" }),
-                `${datePrefix()}-uw-end-term-${student}-${term}.md`,
-            );
-            showToast("Markdown exported.");
+                const student = sanitizedFileSegment(data.pi_student, "student");
+                const term = sanitizedFileSegment(data.pi_term, "term");
+                downloadBlob(
+                    new Blob([md], { type: "text/markdown" }),
+                    `${datePrefix()}-uw-end-term-${student}-${term}.md`,
+                );
+                showToast("Markdown exported.");
+            });
         });
     }
 
