@@ -106,16 +106,310 @@
         });
     }
 
-    function markdownValue(value, fallback = "_(not provided)_") {
-        return value && String(value).trim()
-            ? String(value).trim()
-            : fallback;
+    function escapeReportHtml(value) {
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 
-    function markdownList(values, fallback = "_(none selected)_") {
-        return values && values.length
-            ? values.map((value) => `- ${value}`).join("\n")
-            : fallback;
+    function reportValue(value, fallback = "Not provided") {
+        const normalized = value && String(value).trim();
+        return escapeReportHtml(normalized || fallback);
+    }
+
+    function reportMetaGrid(fields) {
+        return `<dl class="meta-grid">${fields
+            .map(
+                ([label, value]) => `
+                    <div class="meta-item">
+                        <dt>${escapeReportHtml(label)}</dt>
+                        <dd>${reportValue(value)}</dd>
+                    </div>`,
+            )
+            .join("")}</dl>`;
+    }
+
+    function reportNarrative(label, value) {
+        return `
+            <div class="narrative-block">
+                <h3>${escapeReportHtml(label)}</h3>
+                <div class="narrative-text">${reportValue(value)}</div>
+            </div>`;
+    }
+
+    function reportList(values) {
+        if (!Array.isArray(values) || !values.length) {
+            return '<p class="empty-value">None selected</p>';
+        }
+
+        return `<ul class="report-list">${values
+            .map((value) => `<li>${reportValue(value)}</li>`)
+            .join("")}</ul>`;
+    }
+
+    function reportSection(title, content, className = "") {
+        return `
+            <section class="report-section ${className}">
+                <div class="section-heading">
+                    <span></span>
+                    <h2>${escapeReportHtml(title)}</h2>
+                </div>
+                ${content}
+            </section>`;
+    }
+
+    function openPdfReport({ filename, title, subtitle, body }) {
+        const printWindow = window.open("", "_blank");
+        if (!printWindow) {
+            showToast("Allow pop-ups to export the PDF.");
+            return false;
+        }
+
+        const generatedOn = new Date().toLocaleDateString("en-CA", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        });
+
+        printWindow.document.write(`<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${escapeReportHtml(filename)}</title>
+    <style>
+        * { box-sizing: border-box; }
+        @page { size: A4; margin: 15mm 14mm 17mm; }
+        :root {
+            --ink: #18233b;
+            --muted: #657084;
+            --line: #dce2ea;
+            --wash: #f4f7fa;
+            --gold: #d9b300;
+            --blue: #3f6595;
+            --red: #a83c3c;
+            --green: #316d48;
+        }
+        body {
+            margin: 0;
+            color: var(--ink);
+            background: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.5;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .report-shell { max-width: 182mm; margin: 0 auto; }
+        .report-header {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 16px;
+            padding-bottom: 16px;
+            border-bottom: 3px solid var(--ink);
+            break-inside: avoid;
+        }
+        .brand-mark {
+            width: 48px;
+            height: 48px;
+            display: grid;
+            place-items: center;
+            border: 2px solid var(--ink);
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            line-height: 1.1;
+            text-align: center;
+        }
+        .brand-mark strong { display: block; font-size: 15px; }
+        .eyebrow {
+            margin-bottom: 2px;
+            color: var(--blue);
+            font-size: 8px;
+            font-weight: 800;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+        }
+        h1 { margin: 0; font-size: 20px; line-height: 1.15; letter-spacing: -0.02em; }
+        .subtitle { margin: 5px 0 0; color: var(--muted); font-size: 9px; }
+        .document-label {
+            align-self: start;
+            padding: 5px 8px;
+            border-radius: 999px;
+            color: var(--ink);
+            background: #f4e9a8;
+            font-size: 7px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+        }
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1px;
+            margin: 18px 0 0;
+            padding: 1px;
+            border-radius: 6px;
+            background: var(--line);
+            overflow: hidden;
+            break-inside: avoid;
+        }
+        .meta-item { min-height: 49px; padding: 9px 11px; background: var(--wash); }
+        .meta-item dt {
+            margin-bottom: 2px;
+            color: var(--muted);
+            font-size: 7px;
+            font-weight: 800;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+        }
+        .meta-item dd { margin: 0; font-size: 10px; font-weight: 650; }
+        .report-section { margin-top: 20px; }
+        .report-section.keep-together, .narrative-block, .summary-card { break-inside: avoid; }
+        .section-heading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            break-after: avoid;
+        }
+        .section-heading span { width: 18px; height: 3px; background: var(--gold); }
+        .section-heading h2 {
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.2;
+            letter-spacing: 0.015em;
+        }
+        .narrative-block {
+            margin-top: 9px;
+            padding: 12px 13px;
+            border: 1px solid var(--line);
+            border-left: 3px solid var(--blue);
+            border-radius: 5px;
+        }
+        .narrative-block h3 {
+            margin: 0 0 5px;
+            color: var(--blue);
+            font-size: 8px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .narrative-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 9px;
+            break-inside: avoid;
+        }
+        .summary-card {
+            padding: 12px 13px;
+            border-radius: 5px;
+            background: var(--wash);
+        }
+        .summary-card .label {
+            color: var(--muted);
+            font-size: 7px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .summary-card .value { margin-top: 4px; font-size: 11px; font-weight: 750; }
+        .report-list { margin: 0; padding: 0; list-style: none; }
+        .report-list li {
+            position: relative;
+            margin-top: 5px;
+            padding: 8px 10px 8px 25px;
+            border-radius: 4px;
+            background: var(--wash);
+            break-inside: avoid;
+        }
+        .report-list li::before {
+            content: "";
+            position: absolute;
+            left: 10px;
+            top: 13px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--gold);
+        }
+        .empty-value { margin: 0; color: var(--muted); font-style: italic; }
+        .rating-group { margin-top: 12px; }
+        .rating-group h3 {
+            margin: 0 0 5px;
+            padding: 7px 9px;
+            color: #fff;
+            background: var(--ink);
+            font-size: 9px;
+            break-after: avoid;
+        }
+        .rating-table { width: 100%; border-collapse: collapse; }
+        .rating-table tr { break-inside: avoid; }
+        .rating-table td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+        .rating-table td:last-child { width: 37%; text-align: right; }
+        .rating-pill {
+            display: inline-block;
+            padding: 3px 7px;
+            border-radius: 999px;
+            color: var(--blue);
+            background: #eaf0f7;
+            font-size: 8px;
+            font-weight: 750;
+            white-space: nowrap;
+        }
+        .rating-pill.low { color: var(--red); background: #f8e8e8; }
+        .rating-pill.strong { color: var(--green); background: #e7f2eb; }
+        .rating-pill.muted { color: var(--muted); background: #edf0f3; }
+        .report-footer {
+            margin-top: 24px;
+            padding-top: 9px;
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 7px;
+            text-align: center;
+        }
+        @media screen {
+            body { padding: 28px; background: #edf1f5; }
+            .report-shell {
+                padding: 15mm 14mm 17mm;
+                background: #fff;
+                box-shadow: 0 18px 48px rgba(24, 35, 59, 0.14);
+            }
+        }
+        @media print {
+            body { background: #fff; }
+            .report-shell { max-width: none; }
+        }
+    </style>
+</head>
+<body>
+    <article class="report-shell">
+        <header class="report-header">
+            <div class="brand-mark"><div><strong>UW</strong>CO-OP</div></div>
+            <div>
+                <div class="eyebrow">Employer evaluation</div>
+                <h1>${escapeReportHtml(title)}</h1>
+                <p class="subtitle">${escapeReportHtml(subtitle)}</p>
+            </div>
+            <div class="document-label">INTERNAL</div>
+        </header>
+        <main>${body}</main>
+        <footer class="report-footer">
+            Generated ${escapeReportHtml(generatedOn)} · Convenience copy - not formally sanctioned by the University of Waterloo
+        </footer>
+    </article>
+</body>
+</html>`);
+        printWindow.document.close();
+
+        setTimeout(() => {
+            printWindow.focus();
+            printWindow.print();
+        }, 250);
+        return true;
     }
 
     if (themeBtn) {
@@ -232,80 +526,50 @@
             saveDraft();
         });
 
-        document.getElementById("exportMdBtn")?.addEventListener("click", () => {
+        document.getElementById("exportPdfBtn")?.addEventListener("click", () => {
             const data = getFormData();
-            const val = (id) => data[id] || "_(not provided)_";
-            const opt = (id) => data[id] || "_(not answered)_";
-
-            const md = `# UW Co-op Employer eCheckIn
-
-## Placement Information
-
-| Field | Value |
-|---|---|
-| Student Name | ${val("pi_student")} |
-| Student ID | ${val("pi_student_id")} |
-| Organization | ${val("pi_org")} |
-| Division | ${val("pi_division")} |
-| Job Title | ${val("pi_job_title")} |
-| Term | ${val("pi_term")} |
-| Supervisor | ${val("pi_supervisor")} |
-| Supervisor Email | ${val("pi_supervisor_email")} |
-
----
-
-## Your Information
-
-| Field | Value |
-|---|---|
-| Name | ${val("q_your_name")} |
-| Email | ${val("q_your_email")} |
-| Phone | ${val("q_your_phone")} |
-
----
-
-## Your Feedback - Required
-
-**Q: Overall, how is the student meeting your expectations with respect to their job performance and conduct at work? (Please note that your Employer Experience Manager will follow up with you if the student is not meeting expectations).**
-
-${opt("q_expectations")}
-
-**Comments (re: student job performance and conduct):**
-
-${data.q_expectations_comments || "_(not provided)_"}
-
-**Q: Do you have any other questions or concerns that you would like to talk about with your Employer Experience Manager (eg. funding, events, hiring strategy, engagement at UW beyond co-op, etc.)?**
-
-${opt("q_eem_questions")}
-
----
-
-## Additional Required Feedback
-
-**Top area of strength:**
-
-${opt("q_strength")}
-
-**Additional comments on area of strength:**
-
-${data.q_strength_comments || "_(not provided)_"}
-
-**Area for development:**
-
-${opt("q_development")}
-
-**Additional comments on area for development:**
-
-${data.q_development_comments || "_(not provided)_"}
-`;
-
             const student = sanitizedFileSegment(data.pi_student, "student");
             const term = sanitizedFileSegment(data.pi_term, "term");
-            downloadBlob(
-                new Blob([md], { type: "text/markdown" }),
-                `${datePrefix()}-uw-checkin-${student}-${term}.md`,
-            );
-            showToast("Markdown exported.");
+            const filename = `${datePrefix()}-uw-checkin-${student}-${term}.pdf`;
+            const placement = reportMetaGrid([
+                ["Student name", data.pi_student],
+                ["Supervisor", data.pi_supervisor || data.q_your_name],
+            ]);
+            const progressSummary = `
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="label">Performance to date</div>
+                        <div class="value">${reportValue(data.q_expectations, "Not answered")}</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="label">Follow-up requested</div>
+                        <div class="value">${reportValue(data.q_eem_questions, "Not answered")}</div>
+                    </div>
+                </div>
+                ${reportNarrative("Performance and conduct comments", data.q_expectations_comments)}`;
+            const developmentSummary = `
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="label">Top area of strength</div>
+                        <div class="value">${reportValue(data.q_strength)}</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="label">Area for development</div>
+                        <div class="value">${reportValue(data.q_development)}</div>
+                    </div>
+                </div>
+                ${reportNarrative("Strength comments", data.q_strength_comments)}
+                ${reportNarrative("Development comments", data.q_development_comments)}`;
+
+            const reportOpened = openPdfReport({
+                filename,
+                title: "Employer eCheckIn",
+                subtitle: `${data.pi_student?.trim() || "Student"} · Mid-term progress review`,
+                body: `${placement}${reportSection("Progress check", progressSummary)}${reportSection("Strengths and development", developmentSummary)}`,
+            });
+            if (reportOpened) {
+                showToast("PDF report opened. Choose Save as PDF.");
+            }
         });
     }
 
@@ -736,87 +1000,73 @@ ${data.q_development_comments || "_(not provided)_"}
             saveDraft();
         });
 
-        document.getElementById("exportMdBtn")?.addEventListener("click", () => {
+        document.getElementById("exportPdfBtn")?.addEventListener("click", () => {
             exportWithLowRatingCheck((data) => {
-                const competencyMarkdown = COMPETENCY_SECTIONS.map((section) => {
-                    const items = section.items
-                        .map((item, index) => {
-                            const key = `${section.id}_${index}`;
-                            return `- ${item}: ${markdownValue(data[key], "_(not rated)_")}`;
-                        })
-                        .join("\n");
-
-                    return `### ${section.title}\n\n${items}`;
-                }).join("\n\n");
-
-                const md = `# UW Co-op Employer End-of-Term Evaluation
-
-## Placement Information
-
-- Student Name: ${markdownValue(data.pi_student)}
-- Student ID: ${markdownValue(data.pi_student_id)}
-- Organization: ${markdownValue(data.pi_org)}
-- Division / Department: ${markdownValue(data.pi_division)}
-- Job Title: ${markdownValue(data.pi_job_title)}
-- Work Term: ${markdownValue(data.pi_term)}
-- Supervisor: ${markdownValue(data.pi_supervisor)}
-- Supervisor Email: ${markdownValue(data.pi_supervisor_email)}
-
-## Your Information
-
-- Name: ${markdownValue(data.q_your_name)}
-- Title: ${markdownValue(data.q_your_title)}
-- Phone: ${markdownValue(data.q_your_phone)}
-
-## Rating Details
-
-${competencyMarkdown}
-
-## Top 3 Areas of Strength
-
-${markdownList(data.q_strengths)}
-
-### Additional Comments
-
-${markdownValue(data.q_strength_comments)}
-
-## Top 3 Areas for Development
-
-${markdownList(data.q_developments)}
-
-### Additional Comments
-
-${markdownValue(data.q_development_comments)}
-
-## Overall Evaluation
-
-- Overall Performance Rating: ${markdownValue(data.q_overall_rating, "_(not selected)_")}
-- Reviewed Completed Evaluation With Student: ${markdownValue(data.q_reviewed_with_student, "_(not selected)_")}
-
-### Supervisor's Comments
-
-${markdownValue(data.q_supervisor_comments)}
-
-### Supervisor's Recommendations
-
-${markdownValue(data.q_supervisor_recommendations)}
-
-## Student Comments
-
-${markdownValue(data.q_student_comments)}
-
-## Future Employment Potential
-
-- Would You Like the Student to Return Next Work Term: ${markdownValue(data.q_return_next_term, "_(not selected)_")}
-`;
-
                 const student = sanitizedFileSegment(data.pi_student, "student");
-                const term = sanitizedFileSegment(data.pi_term, "term");
-                downloadBlob(
-                    new Blob([md], { type: "text/markdown" }),
-                    `${datePrefix()}-uw-end-term-${student}-${term}.md`,
+                const supervisor = sanitizedFileSegment(
+                    data.q_your_name,
+                    "supervisor",
                 );
-                showToast("Markdown exported.");
+                const filename = `${datePrefix()}-uw-end-term-${student}-${supervisor}.pdf`;
+                const placement = reportMetaGrid([
+                    ["Student name", data.pi_student],
+                    ["Supervisor", data.pi_supervisor || data.q_your_name],
+                    ["Reviewed with student", data.q_reviewed_with_student],
+                ]);
+                const ratings = COMPETENCY_SECTIONS.map((section) => {
+                    const rows = section.items
+                        .map((item, index) => {
+                            const value = data[`${section.id}_${index}`] || "Not rated";
+                            let ratingClass = "";
+                            if (/^(1|2)\s-/.test(value)) ratingClass = "low";
+                            else if (/^4\s-/.test(value)) ratingClass = "strong";
+                            else if (value === "Not observed" || value === "Not rated") {
+                                ratingClass = "muted";
+                            }
+
+                            return `
+                                <tr>
+                                    <td>${escapeReportHtml(item)}</td>
+                                    <td><span class="rating-pill ${ratingClass}">${reportValue(value)}</span></td>
+                                </tr>`;
+                        })
+                        .join("");
+
+                    return `
+                        <div class="rating-group">
+                            <h3>${escapeReportHtml(section.title)}</h3>
+                            <table class="rating-table"><tbody>${rows}</tbody></table>
+                        </div>`;
+                }).join("");
+                const strengths = `
+                    ${reportList(data.q_strengths)}
+                    ${reportNarrative("Supporting comments", data.q_strength_comments)}`;
+                const development = `
+                    ${reportList(data.q_developments)}
+                    ${reportNarrative("Improvement guidance", data.q_development_comments)}`;
+                const overall = `
+                    <div class="summary-grid">
+                        <div class="summary-card">
+                            <div class="label">Overall performance</div>
+                            <div class="value">${reportValue(data.q_overall_rating, "Not selected")}</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="label">Return next term</div>
+                            <div class="value">${reportValue(data.q_return_next_term, "Not selected")}</div>
+                        </div>
+                    </div>
+                    ${reportNarrative("Supervisor comments", data.q_supervisor_comments)}
+                    ${reportNarrative("Supervisor recommendations", data.q_supervisor_recommendations)}`;
+
+                const reportOpened = openPdfReport({
+                    filename,
+                    title: "Employer End-of-Term Evaluation",
+                    subtitle: `${data.pi_student?.trim() || "Student"} · Final performance review`,
+                    body: `${placement}${reportSection("Competency ratings", ratings)}${reportSection("Top areas of strength", strengths)}${reportSection("Top areas for development", development)}${reportSection("Overall evaluation", overall)}${reportSection("Student comments", reportNarrative("Student perspective", data.q_student_comments))}`,
+                });
+                if (reportOpened) {
+                    showToast("PDF report opened. Choose Save as PDF.");
+                }
             });
         });
     }
