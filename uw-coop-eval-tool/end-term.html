@@ -243,24 +243,51 @@
                                     >*</span
                                 ></label
                             >
-                            <select id="q_overall_rating">
+                            <select
+                                id="q_overall_rating"
+                                aria-describedby="overallRatingGuidance"
+                            >
                                 <option value="">— select —</option>
-                                <option value="OUTSTANDING">OUTSTANDING</option>
-                                <option value="EXCELLENT">EXCELLENT</option>
-                                <option value="VERY GOOD">VERY GOOD</option>
-                                <option value="GOOD">GOOD</option>
-                                <option value="SATISFACTORY">
-                                    SATISFACTORY
+                                <option value="OUTSTANDING">
+                                    OUTSTANDING - Significantly exceeds all
+                                    expectations
                                 </option>
-                                <option value="MARGINAL">MARGINAL</option>
+                                <option value="EXCELLENT">
+                                    EXCELLENT - Exceeds all expectations
+                                </option>
+                                <option value="VERY GOOD">
+                                    VERY GOOD - Meets all and exceeds some
+                                    expectations
+                                </option>
+                                <option value="GOOD">
+                                    GOOD - Meets expectations
+                                </option>
+                                <option value="SATISFACTORY">
+                                    SATISFACTORY - Does not fully meet
+                                    expectations
+                                </option>
+                                <option value="MARGINAL">
+                                    MARGINAL - Requires improvement
+                                </option>
                                 <option value="UNSATISFACTORY">
-                                    UNSATISFACTORY
+                                    UNSATISFACTORY - Does not meet requirements
                                 </option>
                             </select>
-                            <div class="hint">
-                                Outstanding is reserved for exceptional
-                                contribution or performance and requires written
-                                comments on the official form.
+                            <div
+                                class="overall-rating-guidance"
+                                id="overallRatingGuidance"
+                                data-tone="neutral"
+                                aria-live="polite"
+                            >
+                                <div
+                                    class="overall-rating-guidance__eyebrow"
+                                >
+                                    Rating guidance
+                                </div>
+                                <p>
+                                    Select an overall rating to view its official
+                                    performance criteria.
+                                </p>
                             </div>
                         </div>
 

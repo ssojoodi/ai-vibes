@@ -317,6 +317,38 @@
             text-transform: uppercase;
         }
         .summary-card .value { margin-top: 4px; font-size: 11px; font-weight: 750; }
+        .selected-rating-guidance {
+            --guidance-accent: var(--blue);
+            margin-top: 9px;
+            padding: 12px 13px;
+            border: 1px solid var(--line);
+            border-left: 3px solid var(--guidance-accent);
+            border-radius: 5px;
+            background: #fbfcfd;
+            break-inside: avoid;
+        }
+        .selected-rating-guidance[data-tone="outstanding"] { --guidance-accent: #9a7600; }
+        .selected-rating-guidance[data-tone="positive"] { --guidance-accent: var(--green); }
+        .selected-rating-guidance[data-tone="caution"] { --guidance-accent: #a75f12; }
+        .selected-rating-guidance[data-tone="critical"] { --guidance-accent: var(--red); }
+        .selected-rating-guidance .label {
+            color: var(--guidance-accent);
+            font-size: 7px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .selected-rating-guidance h3 { margin: 3px 0 7px; font-size: 11px; }
+        .selected-rating-guidance ul { margin: 0; padding-left: 17px; }
+        .selected-rating-guidance li + li { margin-top: 4px; }
+        .selected-rating-guidance p { margin: 7px 0 0; }
+        .selected-rating-guidance a { color: var(--blue); font-weight: 700; }
+        .selected-rating-guidance__note {
+            padding: 7px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            background: var(--wash);
+        }
         .report-list { margin: 0; padding: 0; list-style: none; }
         .report-list li {
             position: relative;
@@ -588,6 +620,72 @@
             { value: "4 - Strong performance", short: "4", text: "Strong performance" },
         ];
 
+        const OVERALL_RATING_GUIDANCE = {
+            OUTSTANDING: {
+                label: "Outstanding Performance",
+                tone: "outstanding",
+                criteria: [
+                    "The student has significantly exceeded all behavioural and developmental performance expectations in respect to output, quality standards, delivery of goals and assignments.",
+                    "This rating is reserved for only those few students who have distinguished themselves by their unique contribution or exceptional performance.",
+                    "The student receives credit for the work term on their academic record.",
+                ],
+            },
+            EXCELLENT: {
+                label: "Excellent Performance",
+                tone: "positive",
+                criteria: [
+                    "The student has exceeded all performance expectations in respect to output, quality standards, delivery of goals and assignments.",
+                    "The supervisor is delighted with this student's performance.",
+                    "The student receives credit (CR) for the work term on their academic record.",
+                ],
+            },
+            "VERY GOOD": {
+                label: "Very Good Performance",
+                tone: "positive",
+                criteria: [
+                    "The student met all, and exceeded some, performance expectations in respect to output, quality standards, delivery of goals and assignments.",
+                    "The supervisor is very pleased with this student's performance.",
+                    "The student receives credit (CR) for the work term on their academic record.",
+                ],
+            },
+            GOOD: {
+                label: "Good Performance",
+                tone: "positive",
+                criteria: [
+                    "The student met performance expectations in respect to output, quality standards, delivery of goals and assignments.",
+                    "The supervisor is pleased with this student's performance.",
+                    "The student receives credit (CR) for the work term on their academic record.",
+                ],
+            },
+            SATISFACTORY: {
+                label: "Satisfactory Performance",
+                tone: "neutral",
+                criteria: [
+                    "The student has not fully met the performance expectations in respect to output, quality standards, delivery of goals and assignments.",
+                    "The supervisor is mostly satisfied with the student's performance.",
+                    "The student receives credit (CR) for the work term on their academic record.",
+                ],
+            },
+            MARGINAL: {
+                label: "Marginal Performance",
+                tone: "caution",
+                criteria: [
+                    "Overall performance requires improvement and/or certain key aspects of performance require improvement while other aspects may be satisfactory.",
+                    "The supervisor is displeased with this student's performance.",
+                    "The student receives credit (CR) for the work term on their academic record.",
+                ],
+            },
+            UNSATISFACTORY: {
+                label: "Unsatisfactory Performance",
+                tone: "critical",
+                criteria: [
+                    "The student did not meet performance requirements.",
+                    "This rating represents a failure of the work term.",
+                    'The student receives a "No credit granted" (NCR) for the work term on their academic record.',
+                ],
+            },
+        };
+
         const COMPETENCY_SECTIONS = [
             {
                 id: "expand_transfer_expertise",
@@ -733,6 +831,67 @@
                 .replace(/"/g, "&quot;");
         }
 
+        function renderOverallRatingGuidance(ratingValue) {
+            const container = document.getElementById("overallRatingGuidance");
+            if (!container) return;
+
+            const guidance = OVERALL_RATING_GUIDANCE[ratingValue];
+            container.dataset.tone = guidance?.tone || "neutral";
+
+            if (!guidance) {
+                container.innerHTML = `
+                    <div class="overall-rating-guidance__eyebrow">Rating guidance</div>
+                    <p>Select an overall rating to view its official performance criteria.</p>`;
+                return;
+            }
+
+            const criteria = guidance.criteria
+                .map((criterion) => `<li>${escapeHtml(criterion)}</li>`)
+                .join("");
+            const note = guidance.note
+                ? `<p class="overall-rating-guidance__note">${escapeHtml(guidance.note)}</p>`
+                : "";
+            const award = guidance.award
+                ? `<p>${escapeHtml(guidance.award.text)} <a href="${escapeHtml(guidance.award.url)}" target="_blank" rel="noreferrer">${escapeHtml(guidance.award.label)}</a>.</p>`
+                : "";
+
+            container.innerHTML = `
+                <div class="overall-rating-guidance__header">
+                    <div>
+                        <div class="overall-rating-guidance__eyebrow">Rating guidance</div>
+                        <h3>${escapeHtml(guidance.label)}</h3>
+                    </div>
+                    <span class="overall-rating-guidance__badge">${escapeHtml(ratingValue)}</span>
+                </div>
+                <ul>${criteria}</ul>
+                ${award}
+                ${note}`;
+        }
+
+        function overallRatingGuidanceReportHtml(ratingValue) {
+            const guidance = OVERALL_RATING_GUIDANCE[ratingValue];
+            if (!guidance) return "";
+
+            const criteria = guidance.criteria
+                .map((criterion) => `<li>${escapeReportHtml(criterion)}</li>`)
+                .join("");
+            const note = guidance.note
+                ? `<p class="selected-rating-guidance__note">${escapeReportHtml(guidance.note)}</p>`
+                : "";
+            const award = guidance.award
+                ? `<p>${escapeReportHtml(guidance.award.text)} <a href="${escapeReportHtml(guidance.award.url)}">${escapeReportHtml(guidance.award.label)}</a>.</p>`
+                : "";
+
+            return `
+                <div class="selected-rating-guidance" data-tone="${escapeReportHtml(guidance.tone)}">
+                    <div class="label">Selected rating guidance</div>
+                    <h3>${escapeReportHtml(guidance.label)}</h3>
+                    <ul>${criteria}</ul>
+                    ${award}
+                    ${note}
+                </div>`;
+        }
+
         function renderCompetencies() {
             const container = document.getElementById("competencySections");
             if (!container) return;
@@ -871,6 +1030,7 @@
             setTextValues(data);
             setRadioValues(data);
             setCheckboxValues(data);
+            renderOverallRatingGuidance(data.q_overall_rating || "");
         }
 
         function clearForm() {
@@ -891,6 +1051,8 @@
                     input.disabled = false;
                 });
             });
+
+            renderOverallRatingGuidance("");
         }
 
         function saveDraft(showMessage = false) {
@@ -945,6 +1107,9 @@
             }
 
             if (target.tagName === "SELECT") {
+                if (target.id === "q_overall_rating") {
+                    renderOverallRatingGuidance(target.value);
+                }
                 saveDraft();
             }
         });
@@ -958,6 +1123,7 @@
             }
         } else {
             Object.keys(CHECKBOX_GROUPS).forEach(syncCheckboxGroupState);
+            renderOverallRatingGuidance("");
         }
 
         document.getElementById("saveDraftBtn")?.addEventListener("click", () => {
@@ -1055,6 +1221,7 @@
                             <div class="value">${reportValue(data.q_return_next_term, "Not selected")}</div>
                         </div>
                     </div>
+                    ${overallRatingGuidanceReportHtml(data.q_overall_rating)}
                     ${reportNarrative("Supervisor comments", data.q_supervisor_comments)}
                     ${reportNarrative("Supervisor recommendations", data.q_supervisor_recommendations)}`;
 
