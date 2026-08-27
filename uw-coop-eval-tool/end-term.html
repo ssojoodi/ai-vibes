@@ -481,6 +481,81 @@
             </div>
         </dialog>
 
+        <aside
+            class="rating-comment-popover"
+            id="ratingCommentPopover"
+            popover="auto"
+            role="dialog"
+            aria-labelledby="ratingCommentPopoverTitle"
+            aria-describedby="ratingCommentPopoverContext"
+        >
+            <div class="rating-comment-popover__header">
+                <div>
+                    <div class="rating-comment-popover__eyebrow">
+                        Internal-only rating comment
+                    </div>
+                    <h2 id="ratingCommentPopoverTitle">Rating comment</h2>
+                </div>
+                <button
+                    class="rating-comment-popover__close"
+                    type="button"
+                    popovertarget="ratingCommentPopover"
+                    popovertargetaction="hide"
+                    aria-label="Close rating comment"
+                >
+                    ×
+                </button>
+            </div>
+            <p
+                class="rating-comment-popover__context"
+                id="ratingCommentPopoverContext"
+            ></p>
+            <div
+                class="rating-comment-popover__text"
+                id="ratingCommentPopoverText"
+            ></div>
+            <textarea
+                class="rating-comment-popover__input"
+                id="ratingCommentPopoverInput"
+                rows="5"
+                aria-label="Edit internal rating comment"
+                hidden
+            ></textarea>
+            <p
+                class="rating-comment-popover__error"
+                id="ratingCommentPopoverError"
+                role="alert"
+                hidden
+            >
+                A comment is required for ratings below 4.
+            </p>
+            <div class="rating-comment-popover__actions">
+                <button
+                    class="btn btn-outline"
+                    id="ratingCommentEditBtn"
+                    type="button"
+                >
+                    Edit note
+                </button>
+                <button
+                    class="btn btn-ghost"
+                    id="ratingCommentEditCancelBtn"
+                    type="button"
+                    hidden
+                >
+                    Cancel
+                </button>
+                <button
+                    class="btn btn-primary"
+                    id="ratingCommentEditSaveBtn"
+                    type="button"
+                    hidden
+                >
+                    Save note
+                </button>
+            </div>
+        </aside>
+
         <script src="forms.js"></script>
     </body>
 </html>

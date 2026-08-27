@@ -416,11 +416,69 @@ a {
   background: var(--bg);
 }
 
-.rating-row__label {
+.rating-row__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 0.7rem;
+}
+
+.rating-row__label {
   font-size: 0.94rem;
   font-weight: 600;
   line-height: 1.5;
+}
+
+.rating-row__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.rating-comment-toggle {
+  padding: 0.2rem 0.35rem;
+  border: 0;
+  color: var(--text-muted);
+  background: transparent;
+  font: inherit;
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+
+.rating-comment-toggle:hover {
+  color: var(--primary);
+}
+
+.rating-comment-info {
+  display: inline-grid;
+  width: 1.45rem;
+  height: 1.45rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-muted);
+  background: var(--surface);
+  font-family: Georgia, serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-style: italic;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.rating-comment-info:hover,
+.rating-comment-info:focus-visible {
+  border-color: var(--primary);
+  color: var(--primary);
+  outline: none;
+}
+
+.rating-comment-toggle[hidden],
+.rating-comment-info[hidden] {
+  display: none;
 }
 
 .rating-options {
@@ -701,6 +759,130 @@ a {
   margin-top: 1.25rem;
 }
 
+.rating-comment-popover {
+  position: fixed;
+  inset: auto;
+  width: min(390px, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  background: var(--surface);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.2);
+  overflow: auto;
+}
+
+.rating-comment-popover:popover-open {
+  animation: rating-popover-in 0.16s ease-out;
+}
+
+@keyframes rating-popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+.rating-comment-popover__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.rating-comment-popover__eyebrow {
+  margin-bottom: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.rating-comment-popover h2 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.rating-comment-popover__close {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-muted);
+  background: transparent;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.rating-comment-popover__close:hover {
+  color: var(--text);
+  background: var(--bg-secondary);
+}
+
+.rating-comment-popover__context {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.rating-comment-popover__text {
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border-left: 3px solid var(--primary);
+  border-radius: calc(var(--radius) - 2px);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  background: var(--bg-secondary);
+}
+
+.rating-comment-popover__input {
+  width: 100%;
+  min-height: 120px;
+  margin-top: 1rem;
+  padding: 0.8rem 0.9rem;
+  resize: vertical;
+  border: 1.5px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+  color: var(--text);
+  background: var(--bg);
+  font: inherit;
+  line-height: 1.5;
+}
+
+.rating-comment-popover__input:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.14);
+}
+
+.rating-comment-popover__error {
+  margin-top: 0.45rem;
+  color: var(--danger);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.rating-comment-popover__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  margin-top: 0.85rem;
+}
+
+.rating-comment-popover [hidden] {
+  display: none;
+}
+
 @media (max-width: 800px) {
   .placement-grid,
   .fields-grid,
@@ -742,5 +924,10 @@ a {
 
   .rating-option {
     min-width: 100%;
+  }
+
+  .rating-row__heading {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

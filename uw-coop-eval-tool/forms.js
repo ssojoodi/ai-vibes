@@ -778,12 +778,44 @@
         const RADIO_GROUPS = COMPETENCY_SECTIONS.flatMap((section) =>
             section.items.map((_, index) => `${section.id}_${index}`),
         );
+        const RATING_GROUP_DETAILS = Object.fromEntries(
+            COMPETENCY_SECTIONS.flatMap((section) =>
+                section.items.map((item, index) => [
+                    `${section.id}_${index}`,
+                    { section: section.title, item },
+                ]),
+            ),
+        );
 
         const form = document.getElementById("evaluationForm");
         const lowRatingModal = document.getElementById("lowRatingModal");
         const lowRatingYesBtn = document.getElementById("lowRatingYesBtn");
         const lowRatingNoBtn = document.getElementById("lowRatingNoBtn");
+        const ratingCommentPopover = document.getElementById(
+            "ratingCommentPopover",
+        );
+        const ratingCommentEditBtn = document.getElementById(
+            "ratingCommentEditBtn",
+        );
+        const ratingCommentPopoverText = document.getElementById(
+            "ratingCommentPopoverText",
+        );
+        const ratingCommentPopoverInput = document.getElementById(
+            "ratingCommentPopoverInput",
+        );
+        const ratingCommentPopoverError = document.getElementById(
+            "ratingCommentPopoverError",
+        );
+        const ratingCommentEditSaveBtn = document.getElementById(
+            "ratingCommentEditSaveBtn",
+        );
+        const ratingCommentEditCancelBtn = document.getElementById(
+            "ratingCommentEditCancelBtn",
+        );
+        const ratingComments = {};
         let pendingExport = null;
+        let viewedRatingCommentGroup = null;
+        let viewedRatingCommentTrigger = null;
 
         function hasLowRatings(data) {
             return RADIO_GROUPS.some((groupName) =>
@@ -799,6 +831,7 @@
 
         function exportWithLowRatingCheck(exportAction) {
             const data = getFormData();
+            if (!validateRequiredRatingComments(data)) return;
 
             if (!hasLowRatings(data)) {
                 exportAction(data);
@@ -892,6 +925,221 @@
                 </div>`;
         }
 
+        function isRatingBelowFour(value) {
+            return /^[1-3]\s-/.test(value || "");
+        }
+
+        function getRatingComments() {
+            const comments = {};
+
+            RADIO_GROUPS.forEach((groupName) => {
+                const value = String(ratingComments[groupName] || "").trim();
+                if (value) comments[groupName] = value;
+            });
+
+            return comments;
+        }
+
+        function syncRatingFeedbackState(groupName) {
+            const selectedRating = getRadioValue(groupName);
+            const comment = String(ratingComments[groupName] || "").trim();
+            const toggle = document.querySelector(
+                `[data-rating-comment-toggle="${groupName}"]`,
+            );
+            const info = document.querySelector(
+                `[data-rating-comment-info="${groupName}"]`,
+            );
+
+            if (toggle) {
+                toggle.hidden = !selectedRating;
+                toggle.textContent = comment
+                    ? "Edit internal note"
+                    : "Add internal note";
+            }
+            if (info) info.hidden = !selectedRating || !comment;
+        }
+
+        function setRatingCommentValues(data) {
+            const comments =
+                data.rating_comments &&
+                typeof data.rating_comments === "object" &&
+                !Array.isArray(data.rating_comments)
+                    ? data.rating_comments
+                    : {};
+
+            Object.keys(ratingComments).forEach((groupName) => {
+                delete ratingComments[groupName];
+            });
+            RADIO_GROUPS.forEach((groupName) => {
+                const storedComment = String(comments[groupName] || "");
+                if (storedComment.trim()) {
+                    ratingComments[groupName] = storedComment.trim();
+                }
+                syncRatingFeedbackState(groupName);
+            });
+        }
+
+        function validateRequiredRatingComments(data) {
+            const comments = data.rating_comments || {};
+            const missingComments = RADIO_GROUPS.filter(
+                (groupName) =>
+                    isRatingBelowFour(data[groupName]) &&
+                    !String(comments[groupName] || "").trim(),
+            );
+
+            if (!missingComments.length) return true;
+
+            const groupName = missingComments[0];
+            const trigger = document.querySelector(
+                `[data-rating-comment-toggle="${groupName}"]`,
+            );
+            trigger?.scrollIntoView({ block: "center" });
+            openRatingCommentPopover(groupName, trigger, true);
+            return false;
+        }
+
+        function positionRatingCommentPopover(trigger) {
+            if (!ratingCommentPopover || !trigger) return;
+
+            const triggerRect = trigger.getBoundingClientRect();
+            const popoverRect = ratingCommentPopover.getBoundingClientRect();
+            const viewportPadding = 12;
+            const gap = 8;
+            const left = Math.min(
+                window.innerWidth - popoverRect.width - viewportPadding,
+                Math.max(viewportPadding, triggerRect.right - popoverRect.width),
+            );
+            let top = triggerRect.bottom + gap;
+
+            if (top + popoverRect.height > window.innerHeight - viewportPadding) {
+                top = Math.max(
+                    viewportPadding,
+                    triggerRect.top - popoverRect.height - gap,
+                );
+            }
+
+            ratingCommentPopover.style.left = `${Math.round(left)}px`;
+            ratingCommentPopover.style.top = `${Math.round(top)}px`;
+        }
+
+        function openRatingCommentPopover(groupName, trigger, startEditing = false) {
+            const details = RATING_GROUP_DETAILS[groupName];
+            const comment = String(ratingComments[groupName] || "").trim();
+            if (!details || (!comment && !startEditing)) return;
+
+            const title = document.getElementById("ratingCommentPopoverTitle");
+            const context = document.getElementById(
+                "ratingCommentPopoverContext",
+            );
+            if (title) title.textContent = details.item;
+            if (context) {
+                context.textContent = `${details.section} - ${getRadioValue(groupName)}`;
+            }
+            if (ratingCommentPopoverText) {
+                ratingCommentPopoverText.textContent = comment;
+            }
+            viewedRatingCommentGroup = groupName;
+            viewedRatingCommentTrigger = trigger;
+            if (ratingCommentPopoverInput) {
+                ratingCommentPopoverInput.value = comment;
+            }
+            setRatingCommentPopoverEditing(startEditing);
+
+            if (ratingCommentPopover?.matches(":popover-open")) {
+                ratingCommentPopover.hidePopover();
+            }
+            ratingCommentPopover?.showPopover();
+            requestAnimationFrame(() => {
+                positionRatingCommentPopover(trigger);
+                if (startEditing) ratingCommentPopoverInput?.focus();
+            });
+        }
+
+        function setRatingCommentPopoverEditing(isEditing) {
+            if (ratingCommentPopoverText) {
+                ratingCommentPopoverText.hidden = isEditing;
+            }
+            if (ratingCommentPopoverInput) {
+                ratingCommentPopoverInput.hidden = !isEditing;
+            }
+            if (ratingCommentEditBtn) ratingCommentEditBtn.hidden = isEditing;
+            if (ratingCommentEditSaveBtn) {
+                ratingCommentEditSaveBtn.hidden = !isEditing;
+            }
+            if (ratingCommentEditCancelBtn) {
+                ratingCommentEditCancelBtn.hidden = !isEditing;
+            }
+            if (ratingCommentPopoverError) {
+                ratingCommentPopoverError.hidden = true;
+            }
+        }
+
+        function editRatingCommentInPopover() {
+            const groupName = viewedRatingCommentGroup;
+            if (!groupName || !ratingCommentPopoverInput) return;
+
+            ratingCommentPopoverInput.value = ratingComments[groupName] || "";
+            setRatingCommentPopoverEditing(true);
+            ratingCommentPopoverInput.focus();
+            requestAnimationFrame(() =>
+                positionRatingCommentPopover(viewedRatingCommentTrigger),
+            );
+        }
+
+        function saveRatingCommentFromPopover() {
+            const groupName = viewedRatingCommentGroup;
+            if (!groupName) return;
+
+            const value = ratingCommentPopoverInput?.value.trim() || "";
+            if (isRatingBelowFour(getRadioValue(groupName)) && !value) {
+                if (ratingCommentPopoverError) {
+                    ratingCommentPopoverError.hidden = false;
+                }
+                ratingCommentPopoverInput?.focus();
+                return;
+            }
+
+            if (value) ratingComments[groupName] = value;
+            else delete ratingComments[groupName];
+            if (ratingCommentPopoverText) {
+                ratingCommentPopoverText.textContent = value;
+            }
+            syncRatingFeedbackState(groupName);
+            saveDraft();
+
+            if (value) {
+                setRatingCommentPopoverEditing(false);
+                requestAnimationFrame(() =>
+                    positionRatingCommentPopover(viewedRatingCommentTrigger),
+                );
+            } else {
+                ratingCommentPopover?.hidePopover();
+            }
+        }
+
+        ratingCommentEditBtn?.addEventListener(
+            "click",
+            editRatingCommentInPopover,
+        );
+        ratingCommentEditSaveBtn?.addEventListener(
+            "click",
+            saveRatingCommentFromPopover,
+        );
+        ratingCommentEditCancelBtn?.addEventListener("click", () => {
+            if (!ratingComments[viewedRatingCommentGroup]) {
+                ratingCommentPopover?.hidePopover();
+                return;
+            }
+            setRatingCommentPopoverEditing(false);
+            requestAnimationFrame(() =>
+                positionRatingCommentPopover(viewedRatingCommentTrigger),
+            );
+        });
+        ratingCommentPopoverInput?.addEventListener("input", () => {
+            if (ratingCommentPopoverError) {
+                ratingCommentPopoverError.hidden = true;
+            }
+        });
         function renderCompetencies() {
             const container = document.getElementById("competencySections");
             if (!container) return;
@@ -914,7 +1162,25 @@
 
                         return `
             <div class="rating-row">
-              <div class="rating-row__label">${escapeHtml(item)}</div>
+              <div class="rating-row__heading">
+                <div class="rating-row__label">${escapeHtml(item)}</div>
+                <div class="rating-row__actions">
+                  <button
+                    class="rating-comment-toggle"
+                    type="button"
+                    data-rating-comment-toggle="${groupName}"
+                    hidden
+                  >Add internal note</button>
+                  <button
+                    class="rating-comment-info"
+                    type="button"
+                    data-rating-comment-info="${groupName}"
+                    aria-label="View internal comment for ${escapeHtml(item)}"
+                    title="View internal comment"
+                    hidden
+                  >i</button>
+                </div>
+              </div>
               <div class="rating-options">${options}</div>
             </div>
           `;
@@ -979,6 +1245,11 @@
                 data[groupName] = getCheckboxValues(groupName);
             });
 
+            const ratingComments = getRatingComments();
+            if (Object.keys(ratingComments).length) {
+                data.rating_comments = ratingComments;
+            }
+
             return data;
         }
 
@@ -1030,6 +1301,7 @@
             setTextValues(data);
             setRadioValues(data);
             setCheckboxValues(data);
+            setRatingCommentValues(data);
             renderOverallRatingGuidance(data.q_overall_rating || "");
         }
 
@@ -1052,6 +1324,7 @@
                 });
             });
 
+            setRatingCommentValues({});
             renderOverallRatingGuidance("");
         }
 
@@ -1097,6 +1370,17 @@
             const target = event.target;
 
             if (target.type === "radio") {
+                const groupName = target.name;
+                syncRatingFeedbackState(groupName);
+                if (
+                    isRatingBelowFour(target.value) &&
+                    !ratingComments[groupName]
+                ) {
+                    const trigger = document.querySelector(
+                        `[data-rating-comment-toggle="${groupName}"]`,
+                    );
+                    openRatingCommentPopover(groupName, trigger, true);
+                }
                 saveDraft();
                 return;
             }
@@ -1114,6 +1398,23 @@
             }
         });
 
+        form?.addEventListener("click", (event) => {
+            const toggle = event.target.closest("[data-rating-comment-toggle]");
+            if (toggle) {
+                const groupName = toggle.dataset.ratingCommentToggle;
+                openRatingCommentPopover(groupName, toggle, true);
+                return;
+            }
+
+            const info = event.target.closest("[data-rating-comment-info]");
+            if (info) {
+                openRatingCommentPopover(
+                    info.dataset.ratingCommentInfo,
+                    info,
+                );
+            }
+        });
+
         const savedDraft = localStorage.getItem(STORAGE_KEY);
         if (savedDraft) {
             try {
@@ -1123,6 +1424,7 @@
             }
         } else {
             Object.keys(CHECKBOX_GROUPS).forEach(syncCheckboxGroupState);
+            RADIO_GROUPS.forEach(syncRatingFeedbackState);
             renderOverallRatingGuidance("");
         }
 
