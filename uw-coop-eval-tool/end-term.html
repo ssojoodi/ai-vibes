@@ -174,12 +174,15 @@
                         <div class="field">
                             <label for="q_strength_comments"
                                 >Additional comments on the student's top 3
-                                areas of strength</label
+                                areas of strength<span class="required-mark"
+                                    >*</span
+                                ></label
                             >
                             <textarea
                                 id="q_strength_comments"
                                 rows="5"
-                                placeholder="Optional. Add examples, context, or evidence from the work term."
+                                placeholder="Add examples, context, or evidence from the work term."
+                                required
                             ></textarea>
                         </div>
                     </div>
@@ -213,12 +216,16 @@
                         <div class="field">
                             <label for="q_development_comments"
                                 >Additional comments on the student's top 3
-                                areas for development</label
+                                areas for development<span
+                                    class="required-mark"
+                                    >*</span
+                                ></label
                             >
                             <textarea
                                 id="q_development_comments"
                                 rows="5"
-                                placeholder="Optional. Add examples, context, or concrete growth opportunities."
+                                placeholder="Add examples, context, or concrete growth opportunities."
+                                required
                             ></textarea>
                         </div>
                     </div>
@@ -236,46 +243,81 @@
                                     >*</span
                                 ></label
                             >
-                            <select id="q_overall_rating">
+                            <select
+                                id="q_overall_rating"
+                                aria-describedby="overallRatingGuidance"
+                            >
                                 <option value="">— select —</option>
-                                <option value="OUTSTANDING">OUTSTANDING</option>
-                                <option value="EXCELLENT">EXCELLENT</option>
-                                <option value="VERY GOOD">VERY GOOD</option>
-                                <option value="GOOD">GOOD</option>
-                                <option value="SATISFACTORY">
-                                    SATISFACTORY
+                                <option value="OUTSTANDING">
+                                    OUTSTANDING - Significantly exceeds all
+                                    expectations
                                 </option>
-                                <option value="MARGINAL">MARGINAL</option>
+                                <option value="EXCELLENT">
+                                    EXCELLENT - Exceeds all expectations
+                                </option>
+                                <option value="VERY GOOD">
+                                    VERY GOOD - Meets all and exceeds some
+                                    expectations
+                                </option>
+                                <option value="GOOD">
+                                    GOOD - Meets expectations
+                                </option>
+                                <option value="SATISFACTORY">
+                                    SATISFACTORY - Does not fully meet
+                                    expectations
+                                </option>
+                                <option value="MARGINAL">
+                                    MARGINAL - Requires improvement
+                                </option>
                                 <option value="UNSATISFACTORY">
-                                    UNSATISFACTORY
+                                    UNSATISFACTORY - Does not meet requirements
                                 </option>
                             </select>
-                            <div class="hint">
-                                Outstanding is reserved for exceptional
-                                contribution or performance and requires written
-                                comments on the official form.
+                            <div
+                                class="overall-rating-guidance"
+                                id="overallRatingGuidance"
+                                data-tone="neutral"
+                                aria-live="polite"
+                            >
+                                <div
+                                    class="overall-rating-guidance__eyebrow"
+                                >
+                                    Rating guidance
+                                </div>
+                                <p>
+                                    Select an overall rating to view its official
+                                    performance criteria.
+                                </p>
                             </div>
                         </div>
 
                         <div class="field">
                             <label for="q_supervisor_comments"
-                                >Supervisor's comments</label
+                                >Supervisor's comments<span
+                                    class="required-mark"
+                                    >*</span
+                                ></label
                             >
                             <textarea
                                 id="q_supervisor_comments"
                                 rows="6"
                                 placeholder="Please comment on the student's overall job performance."
+                                required
                             ></textarea>
                         </div>
 
                         <div class="field">
                             <label for="q_supervisor_recommendations"
-                                >Supervisor's recommendations</label
+                                >Supervisor's recommendations<span
+                                    class="required-mark"
+                                    >*</span
+                                ></label
                             >
                             <textarea
                                 id="q_supervisor_recommendations"
                                 rows="6"
                                 placeholder="Please provide recommendations for the student's personal and/or professional development."
+                                required
                             ></textarea>
                         </div>
 
@@ -310,12 +352,15 @@
                     <div class="form-section__body">
                         <div class="field">
                             <label for="q_student_comments"
-                                >Student comments</label
+                                >Student comments<span class="required-mark"
+                                    >*</span
+                                ></label
                             >
                             <textarea
                                 id="q_student_comments"
                                 rows="6"
-                                placeholder="After the supervisor has completed the evaluation, the student can comment on their overall performance, learning objectives, and future employment expectations."
+                                placeholder="After the supervisor has completed the evaluation, add the student's comments on their overall performance, learning objectives, and future employment expectations."
+                                required
                             ></textarea>
                             <div class="hint">
                                 Included because it appears on the official
@@ -388,11 +433,11 @@
                     </button>
                     <button
                         class="btn btn-outline"
-                        id="exportMdBtn"
+                        id="exportPdfBtn"
                         type="button"
-                        title="Export the current form as Markdown"
+                        title="Open a print-ready report to save as PDF"
                     >
-                        📄 Export MD
+                        📄 Export PDF
                     </button>
                 </div>
             </div>
@@ -405,6 +450,113 @@
         <input type="file" id="importFileInput" accept=".json" />
         <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+        <dialog
+            class="confirmation-modal"
+            id="lowRatingModal"
+            aria-labelledby="lowRatingModalTitle"
+            aria-describedby="lowRatingModalQuestion"
+        >
+            <div class="confirmation-modal__content">
+                <h2 id="lowRatingModalTitle">Check your comments</h2>
+                <p id="lowRatingModalQuestion">
+                    These ratings were low, did you include qualitative comments
+                    addressing how the student can improve?
+                </p>
+                <div class="confirmation-modal__actions">
+                    <button
+                        class="btn btn-ghost"
+                        id="lowRatingNoBtn"
+                        type="button"
+                    >
+                        No, go back
+                    </button>
+                    <button
+                        class="btn btn-primary"
+                        id="lowRatingYesBtn"
+                        type="button"
+                    >
+                        Yes, export
+                    </button>
+                </div>
+            </div>
+        </dialog>
+
+        <aside
+            class="rating-comment-popover"
+            id="ratingCommentPopover"
+            popover="auto"
+            role="dialog"
+            aria-labelledby="ratingCommentPopoverTitle"
+            aria-describedby="ratingCommentPopoverContext"
+        >
+            <div class="rating-comment-popover__header">
+                <div>
+                    <div class="rating-comment-popover__eyebrow">
+                        Internal-only rating comment
+                    </div>
+                    <h2 id="ratingCommentPopoverTitle">Rating comment</h2>
+                </div>
+                <button
+                    class="rating-comment-popover__close"
+                    type="button"
+                    popovertarget="ratingCommentPopover"
+                    popovertargetaction="hide"
+                    aria-label="Close rating comment"
+                >
+                    ×
+                </button>
+            </div>
+            <p
+                class="rating-comment-popover__context"
+                id="ratingCommentPopoverContext"
+            ></p>
+            <div
+                class="rating-comment-popover__text"
+                id="ratingCommentPopoverText"
+            ></div>
+            <textarea
+                class="rating-comment-popover__input"
+                id="ratingCommentPopoverInput"
+                rows="5"
+                aria-label="Edit internal rating comment"
+                hidden
+            ></textarea>
+            <p
+                class="rating-comment-popover__error"
+                id="ratingCommentPopoverError"
+                role="alert"
+                hidden
+            >
+                A comment is required for ratings below 4.
+            </p>
+            <div class="rating-comment-popover__actions">
+                <button
+                    class="btn btn-outline"
+                    id="ratingCommentEditBtn"
+                    type="button"
+                >
+                    Edit note
+                </button>
+                <button
+                    class="btn btn-ghost"
+                    id="ratingCommentEditCancelBtn"
+                    type="button"
+                    hidden
+                >
+                    Cancel
+                </button>
+                <button
+                    class="btn btn-primary"
+                    id="ratingCommentEditSaveBtn"
+                    type="button"
+                    hidden
+                >
+                    Save note
+                </button>
+            </div>
+        </aside>
+
+        <script src="pdf-export.js"></script>
         <script src="forms.js"></script>
     </body>
 </html>
