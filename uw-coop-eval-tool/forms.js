@@ -531,8 +531,8 @@
         }
 
 
-        function isRatingBelowFour(value) {
-            return /^[1-3]\s-/.test(value || "");
+        function requiresRatingComment(value) {
+            return /^[12]\s-/.test(value || "");
         }
 
         function getRatingComments() {
@@ -562,7 +562,17 @@
                     ? "Edit internal note"
                     : "Add internal note";
             }
-            if (info) info.hidden = !selectedRating || !comment;
+            if (info) {
+                const required = requiresRatingComment(selectedRating);
+                info.hidden = !selectedRating || (!comment && !required);
+                info.classList.toggle("rating-comment-info--indicated", required || Boolean(comment));
+                info.querySelector('[role="tooltip"]').textContent =
+                    comment || "An internal note is required for this rating.";
+                info.setAttribute(
+                    "aria-label",
+                    `${comment ? "View" : "Add"} internal note for ${RATING_GROUP_DETAILS[groupName].item}${required ? " (required)" : ""}`,
+                );
+            }
         }
 
         function setRatingCommentValues(data) {
@@ -589,7 +599,7 @@
             const comments = data.rating_comments || {};
             const missingComments = RADIO_GROUPS.filter(
                 (groupName) =>
-                    isRatingBelowFour(data[groupName]) &&
+                    requiresRatingComment(data[groupName]) &&
                     !String(comments[groupName] || "").trim(),
             );
 
@@ -697,7 +707,7 @@
             if (!groupName) return;
 
             const value = ratingCommentPopoverInput?.value.trim() || "";
-            if (isRatingBelowFour(getRadioValue(groupName)) && !value) {
+            if (requiresRatingComment(getRadioValue(groupName)) && !value) {
                 if (ratingCommentPopoverError) {
                     ratingCommentPopoverError.hidden = false;
                 }
@@ -713,14 +723,7 @@
             syncRatingFeedbackState(groupName);
             saveDraft();
 
-            if (value) {
-                setRatingCommentPopoverEditing(false);
-                requestAnimationFrame(() =>
-                    positionRatingCommentPopover(viewedRatingCommentTrigger),
-                );
-            } else {
-                ratingCommentPopover?.hidePopover();
-            }
+            ratingCommentPopover?.hidePopover();
         }
 
         ratingCommentEditBtn?.addEventListener(
@@ -740,6 +743,12 @@
             requestAnimationFrame(() =>
                 positionRatingCommentPopover(viewedRatingCommentTrigger),
             );
+        });
+        ratingCommentPopoverInput?.addEventListener("keydown", (event) => {
+            if (event.metaKey && event.key === "Enter" && !event.isComposing) {
+                event.preventDefault();
+                saveRatingCommentFromPopover();
+            }
         });
         ratingCommentPopoverInput?.addEventListener("input", () => {
             if (ratingCommentPopoverError) {
@@ -782,9 +791,9 @@
                     type="button"
                     data-rating-comment-info="${groupName}"
                     aria-label="View internal comment for ${escapeHtml(item)}"
-                    title="View internal comment"
+                    aria-describedby="rating-note-tooltip-${groupName}"
                     hidden
-                  >i</button>
+                  >i<span class="rating-comment-tooltip" role="tooltip" id="rating-note-tooltip-${groupName}"></span></button>
                 </div>
               </div>
               <div class="rating-options">${options}</div>
@@ -979,7 +988,7 @@
                 const groupName = target.name;
                 syncRatingFeedbackState(groupName);
                 if (
-                    isRatingBelowFour(target.value) &&
+                    requiresRatingComment(target.value) &&
                     !ratingComments[groupName]
                 ) {
                     const trigger = document.querySelector(
@@ -1017,6 +1026,7 @@
                 openRatingCommentPopover(
                     info.dataset.ratingCommentInfo,
                     info,
+                    !ratingComments[info.dataset.ratingCommentInfo],
                 );
             }
         });
